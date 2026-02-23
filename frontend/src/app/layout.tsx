@@ -4,18 +4,15 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'DIRTY APPLE | Curated Luxury, Uncovered Prices',
-  description: 'Luxury fashion resale aggregator - find the best prices on Gucci, Prada, Saint Laurent, Balenciaga and more.',
+  title: 'DIRTY APPLE | Curated Luxury Fashion',
+  description: 'Discover luxury fashion at uncovered prices. Shop Gucci, Prada, Saint Laurent, Balenciaga and more at up to 40% off retail.',
+  keywords: ['luxury fashion', 'designer deals', 'Gucci sale', 'Prada sale', 'luxury markdowns'],
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col bg-white text-black">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

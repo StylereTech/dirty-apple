@@ -1,9 +1,7 @@
 import express from 'express';
-import { Product } from '../models/Product';
 
 const router = express.Router();
 
-// In-memory cart storage (in production, use Redis or session-based storage)
 interface CartItem {
   _id: string;
   productId: string;
@@ -11,120 +9,70 @@ interface CartItem {
   brand: string;
   image: string;
   price: number;
+  originalPrice: number;
   quantity: number;
   size: string;
 }
 
+// In-memory cart (use Redis in production)
 const carts: Map<string, CartItem[]> = new Map();
 
-// GET /api/cart - Get cart items
-router.get('/', async (req, res) => {
-  const sessionId = req.headers['x-session-id'] as string || 'default';
-  const cart = carts.get(sessionId) || [];
-  res.json({ items: cart });
+const getSessionId = (req: express.Request) => (req.headers['x-session-id'] as string) || 'default';
+
+router.get('/', (req, res) => {
+  const cart = carts.get(getSessionId(req)) || [];
+  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  res.json({ items: cart, subtotal, count: cart.length });
 });
 
-// POST /api/cart - Add item to cart
-router.post('/', async (req, res) => {
-  const sessionId = req.headers['x-session-id'] as string || 'default';
-  const { productId, quantity = 1, size } = req.body;
+router.post('/', (req, res) => {
+  const sid = getSessionId(req);
+  const { productId, quantity = 1, size, name, brand, image, price, originalPrice } = req.body;
+  let cart = carts.get(sid) || [];
 
-  let cart = carts.get(sessionId) || [];
-
-  try {
-    // Try to fetch product from database
-    const product = await Product.findById(productId);
-    
-    if (product) {
-      const existingItem = cart.find(item => item.productId === productId && item.size === size);
-      
-      if (existingItem) {
-        existingItem.quantity += quantity;
-      } else {
-        cart.push({
-          _id: `${productId}-${Date.now()}`,
-          productId,
-          name: product.name,
-          brand: product.brand,
-          image: product.images[0],
-          price: product.ourPrice,
-          quantity,
-          size: size || product.sizes[0] || 'One Size',
-        });
-      }
-    } else {
-      // Mock product data if not in database
-      const existingItem = cart.find(item => item.productId === productId && item.size === size);
-      
-      if (existingItem) {
-        existingItem.quantity += quantity;
-      } else {
-        cart.push({
-          _id: `${productId}-${Date.now()}`,
-          productId,
-          name: 'GG Marmont Small Shoulder Bag',
-          brand: 'Gucci',
-          image: 'https://picsum.photos/seed/gucci1/600/800',
-          price: 1699,
-          quantity,
-          size: size || 'One Size',
-        });
-      }
-    }
-
-    carts.set(sessionId, cart);
-    res.json({ items: cart });
-  } catch (error) {
-    // Fallback to mock data
-    const existingItem = cart.find(item => item.productId === productId && item.size === size);
-    
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      cart.push({
-        _id: `${productId}-${Date.now()}`,
-        productId,
-        name: 'GG Marmont Small Shoulder Bag',
-        brand: 'Gucci',
-        image: 'https://picsum.photos/seed/gucci1/600/800',
-        price: 1699,
-        quantity,
-        size: size || 'One Size',
-      });
-    }
-
-    carts.set(sessionId, cart);
-    res.json({ items: cart });
+  const existing = cart.find(i => i.productId === productId && i.size === size);
+  if (existing) {
+    existing.quantity += quantity;
+  } else {
+    cart.push({
+      _id: `${productId}-${size}-${Date.now()}`,
+      productId,
+      name: name || 'Product',
+      brand: brand || '',
+      image: image || '',
+      price: price || 0,
+      originalPrice: originalPrice || price || 0,
+      quantity,
+      size: size || 'One Size',
+    });
   }
+
+  carts.set(sid, cart);
+  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  res.json({ items: cart, subtotal, count: cart.length });
 });
 
-// PATCH /api/cart/:itemId - Update quantity
 router.patch('/:itemId', (req, res) => {
-  const sessionId = req.headers['x-session-id'] as string || 'default';
-  const { itemId } = req.params;
-  const { quantity } = req.body;
-
-  const cart = carts.get(sessionId) || [];
-  const item = cart.find(i => i._id === itemId);
-
-  if (item) {
-    item.quantity = quantity;
-    carts.set(sessionId, cart);
-  }
-
-  res.json({ items: cart });
+  const sid = getSessionId(req);
+  const cart = carts.get(sid) || [];
+  const item = cart.find(i => i._id === req.params.itemId);
+  if (item) item.quantity = Math.max(1, req.body.quantity);
+  carts.set(sid, cart);
+  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  res.json({ items: cart, subtotal, count: cart.length });
 });
 
-// DELETE /api/cart/:itemId - Remove item
 router.delete('/:itemId', (req, res) => {
-  const sessionId = req.headers['x-session-id'] as string || 'default';
-  const { itemId } = req.params;
+  const sid = getSessionId(req);
+  let cart = (carts.get(sid) || []).filter(i => i._id !== req.params.itemId);
+  carts.set(sid, cart);
+  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  res.json({ items: cart, subtotal, count: cart.length });
+});
 
-  let cart = carts.get(sessionId) || [];
-  cart = cart.filter(i => i._id !== itemId);
-  carts.set(sessionId, cart);
-
-  res.json({ items: cart });
+router.delete('/', (req, res) => {
+  carts.set(getSessionId(req), []);
+  res.json({ items: [], subtotal: 0, count: 0 });
 });
 
 export default router;
