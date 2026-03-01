@@ -6,6 +6,8 @@ import productRoutes from './routes/products';
 import cartRoutes from './routes/cart';
 import checkoutRoutes from './routes/checkout';
 import orderRoutes from './routes/orders';
+import scrapeRoutes from './routes/scrape';
+import webhookRoutes from './routes/webhooks';
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/checkout', checkoutRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/scrape', scrapeRoutes);
+app.use('/api/webhooks', webhookRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
