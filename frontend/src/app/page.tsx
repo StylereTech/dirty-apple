@@ -69,9 +69,9 @@ export default function Home() {
         </div>
         <div className="relative z-10 text-center px-4 max-w-3xl">
           <p className="font-inter text-xs tracking-[0.4em] mb-6 text-gray-400">CURATED LUXURY</p>
-          <h1 className="font-playfair text-5xl md:text-8xl mb-6 tracking-tight leading-none">
-            DIRTY APPLE
-          </h1>
+          <div className="mb-6">
+            <Image src="/dirty-apple-logo.jpg" alt="Dirty Apple" width={400} height={130} className="mx-auto h-24 md:h-36 w-auto object-contain" priority />
+          </div>
           <p className="font-inter text-lg md:text-xl font-light tracking-wide mb-10 text-gray-300">
             Luxury fashion. Uncovered prices.
           </p>

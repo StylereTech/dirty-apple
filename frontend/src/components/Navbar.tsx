@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
@@ -47,8 +48,15 @@ export default function Navbar() {
           </div>
 
           {/* Logo */}
-          <Link href="/" className={`font-playfair text-lg tracking-[0.15em] ${textColor} absolute left-1/2 -translate-x-1/2`}>
-            DIRTY APPLE
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2">
+            <Image
+              src="/dirty-apple-logo.jpg"
+              alt="Dirty Apple"
+              width={120}
+              height={40}
+              className="h-8 md:h-10 w-auto object-contain"
+              priority
+            />
           </Link>
 
           {/* Right nav */}
