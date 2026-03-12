@@ -38,9 +38,6 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="text-white font-inter text-xs tracking-[0.2em]">SOLD OUT</span>
           </div>
         )}
-        <div className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 font-inter text-[10px] text-gray-600">
-          {product.retailerSource}
-        </div>
       </div>
       <p className="text-gray-400 font-inter text-[10px] tracking-[0.2em] mb-0.5">{product.brand.toUpperCase()}</p>
       <h3 className="font-inter text-sm leading-tight line-clamp-2 mb-1.5 group-hover:text-gray-600 transition-colors">{product.name}</h3>
