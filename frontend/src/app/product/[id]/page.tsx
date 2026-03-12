@@ -6,6 +6,21 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 
+
+// Deduplicate ShopStyle images (same hash in different sizes → pick _best only)
+function deduplicateImages(images: string[]): string[] {
+  const seen = new Set<string>();
+  return images.filter(url => {
+    // Extract base hash from ShopStyle CDN URLs
+    const match = url.match(/sim\/[a-f0-9]{2}\/[a-f0-9]{2}\/([a-f0-9]+)/);
+    const key = match ? match[1] : url;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+
 const API = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface Product {
@@ -76,6 +91,7 @@ export default function ProductDetail() {
   }
 
   const savings = product.originalPrice - product.ourPrice;
+  const images = deduplicateImages(product.images || []);
 
   return (
     <div className="min-h-screen pt-24">
@@ -92,11 +108,11 @@ export default function ProductDetail() {
           {/* Image Gallery */}
           <div className="space-y-3">
             <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
-              <img src={product.images[selectedImage]} alt={product.name} className="w-full h-full object-contain bg-white p-4" />
+              <img src={images[selectedImage] || product.images[0]} alt={product.name} className="w-full h-full object-contain bg-white p-4" />
             </div>
-            {product.images.length > 1 && (
+            {images.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
-                {product.images.map((img, i) => (
+                {images.map((img, i) => (
                   <button key={i} onClick={() => setSelectedImage(i)}
                     className={`relative aspect-square overflow-hidden ${selectedImage === i ? 'ring-2 ring-black' : 'ring-1 ring-gray-200'}`}>
                           <img src={img} alt="" className="w-full h-full object-contain bg-white" />
