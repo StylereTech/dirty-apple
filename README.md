@@ -104,6 +104,10 @@ dirty-apple/
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
 | `NEXT_PUBLIC_API_URL` | Backend API URL |
 
+## Product Specs
+
+- [AI Bulk Inventory Upload Spec](./AI_BULK_INVENTORY_UPLOAD_SPEC.md)
+
 ## Features
 
 - Browse luxury fashion by category, brand, and price
