@@ -2,11 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install all deps (including devDeps for tsc)
 COPY server/package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
-COPY server/dist ./dist
-COPY server/src/scrapers ./src/scrapers
+# Copy source and build
+COPY server/tsconfig.json ./
+COPY server/src ./src
+RUN npm run build
+
+# Prune dev deps
+RUN npm prune --production
 
 EXPOSE 4000
 
