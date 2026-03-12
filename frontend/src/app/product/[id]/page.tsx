@@ -179,12 +179,6 @@ export default function ProductDetail() {
                 <p className="font-inter text-sm text-gray-600 leading-relaxed">{product.description}</p>
               </div>
               <div>
-                <h3 className="font-inter text-xs tracking-[0.2em] text-gray-500 mb-3">SOURCE</h3>
-                <p className="font-inter text-sm text-gray-600 mb-1">Available at {product.retailerSource}</p>
-                <a href={product.retailerUrl} target="_blank" rel="noopener noreferrer"
-                  className="font-inter text-xs text-gray-400 hover:text-black underline">View original listing →</a>
-              </div>
-              <div>
                 <h3 className="font-inter text-xs tracking-[0.2em] text-gray-500 mb-3">SHIPPING</h3>
                 <p className="font-inter text-sm text-gray-600">Free shipping on orders over $500. Standard delivery 5-7 business days.</p>
               </div>
