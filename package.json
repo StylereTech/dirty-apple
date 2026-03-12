@@ -1,0 +1,12 @@
+{
+  "name": "dirty-apple-server",
+  "version": "1.0.0",
+  "engines": {
+    "node": "20.x",
+    "npm": ">=9"
+  },
+  "scripts": {
+    "build": "cd server && npm ci && npm run build",
+    "start": "node server/dist/index.js"
+  }
+}
