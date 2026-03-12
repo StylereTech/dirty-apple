@@ -14,9 +14,10 @@ const collections = [
 ];
 
 const brandNames = [
-  'Gucci', 'Prada', 'Saint Laurent', 'Balenciaga', 'Bottega Veneta',
-  'Burberry', 'Versace', 'Off-White', 'Celine', 'Dior',
-  'Valentino', 'Loewe', 'Chanel', 'Louis Vuitton',
+  'Saint Laurent', 'Gucci', 'Prada', 'Balenciaga', 'Bottega Veneta',
+  'Burberry', 'Moncler', 'Givenchy', 'Valentino', 'Balmain',
+  'Brunello Cucinelli', 'Amiri', 'Palm Angels', 'Zimmermann',
+  'Dolce & Gabbana', 'Zegna', 'Khaite', 'Stella McCartney',
 ];
 
 const categories = [

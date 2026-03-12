@@ -40,3 +40,5 @@ next-env.d.ts
 .vscode/
 *.swp
 *.swo
+server/.env
+frontend/.env.production
