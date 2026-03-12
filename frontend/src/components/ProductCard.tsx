@@ -25,7 +25,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <img
           src={imgSrc}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          className="w-full h-full object-contain bg-white transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
         />
         {product.discount > 0 && (
@@ -45,9 +45,9 @@ export default function ProductCard({ product }: { product: Product }) {
       <p className="text-gray-400 font-inter text-[10px] tracking-[0.2em] mb-0.5">{product.brand.toUpperCase()}</p>
       <h3 className="font-inter text-sm leading-tight line-clamp-2 mb-1.5 group-hover:text-gray-600 transition-colors">{product.name}</h3>
       <div className="flex items-center gap-2">
-        <span className="font-inter text-sm font-medium">${product.ourPrice.toLocaleString()}</span>
+        <span className="font-inter text-sm font-medium">${Number(product.ourPrice).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
         {product.originalPrice > product.ourPrice && (
-          <span className="font-inter text-xs text-gray-400 line-through">${product.originalPrice.toLocaleString()}</span>
+          <span className="font-inter text-xs text-gray-400 line-through">${Number(product.originalPrice).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
         )}
       </div>
     </Link>

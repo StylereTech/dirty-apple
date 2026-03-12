@@ -92,8 +92,7 @@ export default function ProductDetail() {
           {/* Image Gallery */}
           <div className="space-y-3">
             <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={product.images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
+              <img src={product.images[selectedImage]} alt={product.name} className="w-full h-full object-contain bg-white p-4" />
               {/* Source badge */}
               <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 font-inter text-xs text-gray-600">
                 via {product.retailerSource}
@@ -104,8 +103,7 @@ export default function ProductDetail() {
                 {product.images.map((img, i) => (
                   <button key={i} onClick={() => setSelectedImage(i)}
                     className={`relative aspect-square overflow-hidden ${selectedImage === i ? 'ring-2 ring-black' : 'ring-1 ring-gray-200'}`}>
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                          <img src={img} alt="" className="w-full h-full object-contain bg-white" />
                   </button>
                 ))}
               </div>
@@ -118,11 +116,11 @@ export default function ProductDetail() {
             <h1 className="font-playfair text-2xl md:text-3xl mb-6">{product.name}</h1>
 
             <div className="flex items-baseline gap-4 mb-2">
-              <span className="font-inter text-2xl">${product.ourPrice.toLocaleString()}</span>
-              <span className="font-inter text-lg text-gray-400 line-through">${product.originalPrice.toLocaleString()}</span>
+              <span className="font-inter text-2xl">${Number(product.ourPrice).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
+              <span className="font-inter text-lg text-gray-400 line-through">${Number(product.originalPrice).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</span>
               <span className="bg-black text-white px-2 py-0.5 font-inter text-xs">−{product.discount}%</span>
             </div>
-            <p className="font-inter text-sm text-gray-500 mb-8">You save ${savings.toLocaleString()}</p>
+            <p className="font-inter text-sm text-gray-500 mb-8">You save ${Number(savings).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</p>
 
             {/* Sizes */}
             {product.sizes?.length > 0 && (
