@@ -93,10 +93,6 @@ export default function ProductDetail() {
           <div className="space-y-3">
             <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
               <img src={product.images[selectedImage]} alt={product.name} className="w-full h-full object-contain bg-white p-4" />
-              {/* Source badge */}
-              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 font-inter text-xs text-gray-600">
-                via {product.retailerSource}
-              </div>
             </div>
             {product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
