@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -163,7 +162,7 @@ export default function Checkout() {
                   {items.map(item => (
                     <div key={item._id} className="flex gap-3">
                       <div className="w-14 h-18 relative flex-shrink-0 bg-neutral-100">
-                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-inter text-[10px] text-gray-400">{item.brand}</p>

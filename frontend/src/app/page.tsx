@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import ProductCard from '@/components/ProductCard';
 
 const API = process.env.NEXT_PUBLIC_API_URL || '';
@@ -66,12 +65,12 @@ export default function Home() {
       {/* Hero */}
       <section className="relative h-screen flex items-center justify-center bg-black text-white overflow-hidden">
         <div className="absolute inset-0 opacity-30">
-          <Image src="https://picsum.photos/seed/da-hero/1920/1080" alt="" fill className="object-cover" priority />
+          <img src="https://picsum.photos/seed/da-hero/1920/1080" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="relative z-10 text-center px-4 max-w-3xl">
           <p className="font-inter text-xs tracking-[0.4em] mb-6 text-gray-400">CURATED LUXURY</p>
           <div className="mb-6">
-            <Image src="/dirty-apple-logo.jpg" alt="Dirty Apple" width={400} height={130} className="mx-auto h-24 md:h-36 w-auto object-contain" priority />
+            <img src="/dirty-apple-logo.jpg" alt="Dirty Apple" className="mx-auto h-24 md:h-36 w-auto object-contain" />
           </div>
           <p className="font-inter text-lg md:text-xl font-light tracking-wide mb-10 text-gray-300">
             Luxury fashion. Uncovered prices.
@@ -125,7 +124,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {categories.map(cat => (
               <Link key={cat.slug} href={`/shop?category=${cat.slug}`} className="group relative aspect-[3/4] overflow-hidden">
-                <Image src={cat.image} alt={cat.name} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
                 <div className="absolute inset-0 flex items-end p-6">
                   <span className="text-white font-inter text-sm tracking-[0.2em]">{cat.name.toUpperCase()}</span>

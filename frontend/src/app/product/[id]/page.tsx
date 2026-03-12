@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Image from 'next/image';
+
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 
@@ -92,7 +92,8 @@ export default function ProductDetail() {
           {/* Image Gallery */}
           <div className="space-y-3">
             <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
-              <Image src={product.images[selectedImage]} alt={product.name} fill className="object-cover" priority />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={product.images[selectedImage]} alt={product.name} className="w-full h-full object-cover" />
               {/* Source badge */}
               <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 font-inter text-xs text-gray-600">
                 via {product.retailerSource}
@@ -103,7 +104,8 @@ export default function ProductDetail() {
                 {product.images.map((img, i) => (
                   <button key={i} onClick={() => setSelectedImage(i)}
                     className={`relative aspect-square overflow-hidden ${selectedImage === i ? 'ring-2 ring-black' : 'ring-1 ring-gray-200'}`}>
-                    <Image src={img} alt="" fill className="object-cover" />
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

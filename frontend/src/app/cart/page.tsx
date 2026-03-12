@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 
 const API = process.env.NEXT_PUBLIC_API_URL || '';
@@ -70,7 +69,7 @@ export default function Cart() {
             {items.map(item => (
               <div key={item._id} className="flex gap-5 py-6">
                 <Link href={`/product/${item.productId}`} className="w-24 h-32 relative flex-shrink-0 bg-neutral-100">
-                  <Image src={item.image} alt={item.name} fill className="object-cover" />
+                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                 </Link>
                 <div className="flex-1 min-w-0">
                   <p className="font-inter text-[10px] tracking-[0.2em] text-gray-400">{item.brand?.toUpperCase()}</p>
