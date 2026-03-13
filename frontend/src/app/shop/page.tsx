@@ -27,7 +27,7 @@ export default function Shop() {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [minDiscount, setMinDiscount] = useState(0);
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('price-low');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');

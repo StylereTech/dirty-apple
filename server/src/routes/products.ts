@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   const {
     brand, category, collection, priceMin, priceMax, minDiscount,
-    search, sort = 'newest', page = '1', limit = '12',
+    search, sort = 'price-low', page = '1', limit = '12',
     featured, onSale, inStock,
   } = req.query;
 
@@ -39,11 +39,12 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    let sortQuery: any = { createdAt: -1 };
+    let sortQuery: any = { ourPrice: 1 };
     switch (sort) {
       case 'price-low': sortQuery = { ourPrice: 1 }; break;
       case 'price-high': sortQuery = { ourPrice: -1 }; break;
       case 'discount': sortQuery = { discount: -1 }; break;
+      case 'newest': sortQuery = { createdAt: -1 }; break;
       case 'name': sortQuery = { name: 1 }; break;
     }
 
@@ -95,14 +96,15 @@ router.get('/deals', async (_req, res) => {
 router.get('/collections/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    const { sort = 'newest', page = '1', limit = '12' } = req.query;
+    const { sort = 'price-low', page = '1', limit = '12' } = req.query;
 
     const filter: any = { collectionSlug: slug, status: 'active' };
-    let sortQuery: any = { createdAt: -1 };
+    let sortQuery: any = { ourPrice: 1 };
     switch (sort) {
       case 'price-low': sortQuery = { ourPrice: 1 }; break;
       case 'price-high': sortQuery = { ourPrice: -1 }; break;
       case 'discount': sortQuery = { discount: -1 }; break;
+      case 'newest': sortQuery = { createdAt: -1 }; break;
     }
 
     const pageNum = Math.max(1, Number(page));

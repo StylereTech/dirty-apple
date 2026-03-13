@@ -26,7 +26,7 @@ export default function CollectionPage() {
   const meta = collectionMeta[slug] || { title: slug, description: '' };
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('price-low');
 
   useEffect(() => {
     setLoading(true);
