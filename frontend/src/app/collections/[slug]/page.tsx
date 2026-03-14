@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 
-const API = process.env.NEXT_PUBLIC_API_URL || '';
+const API = process.env.NEXT_PUBLIC_API_URL || 'https://dirty-apple-api-production.up.railway.app';
 
 const collectionMeta: Record<string, { title: string; description: string }> = {
   'editors-picks': { title: "Editor's Picks", description: 'Hand-selected by our style team — the pieces worth investing in.' },
