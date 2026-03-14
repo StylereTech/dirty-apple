@@ -21,21 +21,32 @@ function ShopInner() {
   const [total, setTotal] = useState(0);
   const [brands, setBrands] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>(
-    searchParams.get('brand') ? [searchParams.get('brand')!] : []
-  );
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [minDiscount, setMinDiscount] = useState(0);
   const [sortBy, setSortBy] = useState('price-low');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [searchQuery, setSearchQuery] = useState('');
   const [mobileFilters, setMobileFilters] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  // Sync URL params AFTER hydration — useState initializers run before searchParams are available
+  useEffect(() => {
+    const cat = searchParams.get('category') || '';
+    const brand = searchParams.get('brand') || '';
+    const search = searchParams.get('search') || '';
+    setSelectedCategory(cat);
+    if (brand) setSelectedBrands([brand]);
+    if (search) setSearchQuery(search);
+    setReady(true);
+  }, [searchParams]);
 
   useEffect(() => {
+    if (!ready) return;
     fetchProducts();
-  }, [selectedBrands, selectedCategory, priceRange, minDiscount, sortBy, page, searchQuery]);
+  }, [selectedBrands, selectedCategory, priceRange, minDiscount, sortBy, page, searchQuery, ready]);
 
   const fetchProducts = async () => {
     setLoading(true);
