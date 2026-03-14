@@ -50,11 +50,11 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="absolute left-1/2 -translate-x-1/2">
             <Image
-              src="/dirty-apple-logo.jpg"
+              src="/dirty-apple-logo.png"
               alt="Dirty Apple"
               width={120}
               height={40}
-              className="h-8 md:h-10 w-auto object-contain"
+              className="h-8 md:h-10 w-auto object-contain mix-blend-multiply"
               priority
             />
           </Link>

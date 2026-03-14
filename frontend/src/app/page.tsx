@@ -70,7 +70,7 @@ export default function Home() {
         <div className="relative z-10 text-center px-4 max-w-3xl">
           <p className="font-inter text-xs tracking-[0.4em] mb-6 text-gray-400">CURATED LUXURY</p>
           <div className="mb-6">
-            <img src="/dirty-apple-logo.jpg" alt="Dirty Apple" className="mx-auto h-24 md:h-36 w-auto object-contain" />
+            <img src="/dirty-apple-logo.png" alt="Dirty Apple" className="mx-auto h-24 md:h-36 w-auto object-contain mix-blend-multiply" />
           </div>
           <p className="font-inter text-lg md:text-xl font-light tracking-wide mb-10 text-gray-300">
             Luxury fashion. Uncovered prices.
