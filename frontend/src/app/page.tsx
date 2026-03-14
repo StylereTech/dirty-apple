@@ -20,10 +20,10 @@ const brandNames = [
 ];
 
 const categories = [
-  { name: 'Bags', slug: 'bags', image: 'https://picsum.photos/seed/cat-bags/800/1000' },
-  { name: 'Shoes', slug: 'shoes', image: 'https://picsum.photos/seed/cat-shoes/800/1000' },
-  { name: 'Clothing', slug: 'clothing', image: 'https://picsum.photos/seed/cat-clothing/800/1000' },
-  { name: 'Accessories', slug: 'accessories', image: 'https://picsum.photos/seed/cat-acc/800/1000' },
+  { name: 'Bags', slug: 'bags', image: '/cat-bags.jpg' },
+  { name: 'Shoes', slug: 'shoes', image: '/cat-shoes.jpg' },
+  { name: 'Clothing', slug: 'clothing', image: '/cat-clothing.jpg' },
+  { name: 'Accessories', slug: 'accessories', image: '/cat-accessories.jpg' },
 ];
 
 interface Product {
