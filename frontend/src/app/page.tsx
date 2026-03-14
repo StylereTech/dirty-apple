@@ -65,7 +65,7 @@ export default function Home() {
       {/* Hero */}
       <section className="relative h-screen flex items-center justify-center bg-black text-white overflow-hidden">
         <div className="absolute inset-0 opacity-30">
-          <img src="https://picsum.photos/seed/da-hero/1920/1080" alt="" className="w-full h-full object-cover" />
+          <img src="/hero-bg.jpg" alt="" className="w-full h-full object-cover object-top" />
         </div>
         <div className="relative z-10 text-center px-4 max-w-3xl">
           <p className="font-inter text-xs tracking-[0.4em] mb-6 text-gray-400">CURATED LUXURY</p>
