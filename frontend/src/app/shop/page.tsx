@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
 import FilterSidebar from '@/components/FilterSidebar';
@@ -14,7 +14,7 @@ interface Product {
   inStock: boolean; featured: boolean;
 }
 
-export default function Shop() {
+function ShopInner() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -181,5 +181,17 @@ export default function Shop() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Shop() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pt-20 flex items-center justify-center">
+        <p className="font-inter text-sm text-gray-400">Loading...</p>
+      </div>
+    }>
+      <ShopInner />
+    </Suspense>
   );
 }
