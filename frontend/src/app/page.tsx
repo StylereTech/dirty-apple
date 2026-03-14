@@ -240,7 +240,7 @@ export default function HomePage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {featured.map((p: any) => (
                   <Link key={p._id} href={`/product/${p._id}`} className="group">
-                    <div className="aspect-[3/4] overflow-hidden bg-neutral-900 mb-3 relative">
+                    <div className="aspect-[3/4] overflow-hidden bg-white border border-gray-100 mb-3 relative">
                       <img
                         src={p.images?.[0] || '/cat-clothing.jpg'}
                         alt={p.name}

@@ -98,7 +98,25 @@ router.get('/collections/:slug', async (req, res) => {
     const { slug } = req.params;
     const { sort = 'price-low', page = '1', limit = '12' } = req.query;
 
-    const filter: any = { collectionSlug: slug, status: 'active' };
+    // Category slugs map directly to category field
+    const CATEGORY_SLUGS = ['bags', 'shoes', 'clothing', 'accessories', 'kids'];
+    const COLLECTION_OVERRIDES: Record<string, any> = {
+      'sale':          { discount: { $gte: 20 } },
+      'featured':      { featured: true },
+      'editors-picks': { featured: true },
+      'trending':      { discount: { $gte: 30 } },
+      'new-arrivals':  {},
+    };
+
+    let filter: any = { status: 'active' };
+    if (CATEGORY_SLUGS.includes(slug.toLowerCase())) {
+      filter.category = slug.toLowerCase();
+    } else if (COLLECTION_OVERRIDES[slug]) {
+      Object.assign(filter, COLLECTION_OVERRIDES[slug]);
+    } else {
+      filter.collectionSlug = slug;
+    }
+
     let sortQuery: any = { ourPrice: 1 };
     switch (sort) {
       case 'price-low': sortQuery = { ourPrice: 1 }; break;
