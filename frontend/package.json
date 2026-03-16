@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "analyze": "ANALYZE=true npm run build"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^2.4.0",
@@ -17,6 +18,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.1.6",
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
