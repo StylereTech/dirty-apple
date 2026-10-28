@@ -73,7 +73,7 @@ Container production dependencies are locked and the backend process runs as the
 
 ### Vercel frontend
 
-For a Vercel project with Root Directory `frontend`, install with `npm ci`, build with `npm run build`, and use the default Next.js output `.next`. Clear inherited command overrides that prefix `cd frontend`, since commands already run inside that directory. The repository-root `vercel.json` uses prefixed commands for a root-based build and should not be combined with subdirectory command overrides.
+Set the Vercel project's Root Directory to `frontend`. Its configuration lives in `frontend/vercel.json`: install with `npm ci`, build with `npm run build`, and use the default Next.js output `.next`. Clear inherited command overrides that prefix `cd frontend`, since commands already run inside that directory. The obsolete repository-root `vercel.json` has been removed; it caused Vercel to run `cd frontend` a second time after selecting the frontend root.
 
 Preserve the existing frontend design, logo and editorial assets while restoring hosting. Provider configuration repairs do not require changes to the storefront's visual layout.
 
