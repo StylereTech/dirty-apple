@@ -120,7 +120,21 @@ function CheckoutForm({ items, subtotal, onQuote }: { items: CartItem[]; subtota
     } finally { busy.current = false; setLoading(false); }
   };
 
-  if (success) return <div className="text-center py-16"><h2 className="font-playfair text-3xl mb-3">Order Confirmed</h2><p className="font-inter text-sm text-gray-600 mb-4">Order {success}</p><p className="text-sm text-gray-500 mb-8">Save your order number for reference.</p><Link href="/shop" className="inline-block bg-black text-white px-10 py-4 text-xs tracking-[0.2em]">CONTINUE SHOPPING</Link></div>;
+  if (success) return (
+    <div className="text-center py-16">
+      <div className="w-14 h-14 mx-auto mb-6 bg-black text-white rounded-full flex items-center justify-center">
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2 className="font-playfair text-3xl mb-3">Order Confirmed</h2>
+      <p className="text-gray-500 font-inter text-sm mb-3">Order {success}</p>
+      <p className="text-gray-500 font-inter text-sm mb-8">Save your order number for reference.</p>
+      <Link href="/shop" className="inline-block bg-black text-white px-10 py-4 font-inter text-xs tracking-[0.2em] hover:bg-neutral-800 transition-colors">
+        CONTINUE SHOPPING
+      </Link>
+    </div>
+  );
   if (pending) return <div className="border p-6"><h2 className="font-playfair text-2xl mb-3">Finish order confirmation</h2><p className="text-sm text-gray-600 mb-4">We have a payment awaiting order confirmation. You can retry this step without making another payment.</p>{error && <p role="alert" className="text-sm text-red-700 mb-4">{error}</p>}<button onClick={retryConfirmation} disabled={loading} className="bg-black text-white px-6 py-3 text-xs disabled:opacity-50">{loading ? 'CONFIRMING...' : 'RETRY CONFIRMATION'}</button></div>;
 
   const inputClass = 'w-full border border-gray-300 px-4 py-3 font-inter text-sm focus:outline-none focus:border-black placeholder:text-gray-400';
@@ -129,10 +143,10 @@ function CheckoutForm({ items, subtotal, onQuote }: { items: CartItem[]; subtota
       <fieldset disabled={loading} className="space-y-8">
         <div><h2 className="font-inter text-xs tracking-[0.2em] text-gray-500 mb-4">CONTACT</h2><input aria-label="Email" autoComplete="email" type="email" placeholder="Email" required value={form.email} onChange={e => set('email', e.target.value)} className={inputClass} /></div>
         <div><h2 className="font-inter text-xs tracking-[0.2em] text-gray-500 mb-4">SHIPPING — UNITED STATES</h2><div className="grid grid-cols-2 gap-3"><input aria-label="First name" autoComplete="given-name" placeholder="First name" required value={form.firstName} onChange={e => set('firstName', e.target.value)} className={inputClass} /><input aria-label="Last name" autoComplete="family-name" placeholder="Last name" required value={form.lastName} onChange={e => set('lastName', e.target.value)} className={inputClass} /></div><input aria-label="Street address" autoComplete="street-address" placeholder="Address" required value={form.address} onChange={e => set('address', e.target.value)} className={`${inputClass} mt-3`} /><div className="grid grid-cols-3 gap-3 mt-3"><input aria-label="City" autoComplete="address-level2" placeholder="City" required value={form.city} onChange={e => set('city', e.target.value)} className={inputClass} /><input aria-label="State" autoComplete="address-level1" placeholder="State" required value={form.state} onChange={e => set('state', e.target.value)} className={inputClass} /><input aria-label="ZIP code" autoComplete="postal-code" placeholder="ZIP" required value={form.zip} onChange={e => set('zip', e.target.value)} className={inputClass} /></div><input aria-label="Phone (optional)" autoComplete="tel" type="tel" placeholder="Phone (optional)" value={form.phone} onChange={e => set('phone', e.target.value)} className={`${inputClass} mt-3`} /></div>
-        <div><h2 className="font-inter text-xs tracking-[0.2em] text-gray-500 mb-4">PAYMENT</h2><div className="border border-gray-300 p-4"><CardElement options={{ style: { base: { fontSize: '14px', fontFamily: 'Inter, sans-serif', color: '#000' } } }} /></div></div>
+        <div><h2 className="font-inter text-xs tracking-[0.2em] text-gray-500 mb-4">PAYMENT</h2><div className="border border-gray-300 p-4"><CardElement options={{ style: { base: { fontSize: '14px', fontFamily: 'Inter, sans-serif', color: '#000', '::placeholder': { color: '#999' } } } }} /></div></div>
       </fieldset>
       {error && <div role="alert" className="bg-red-50 text-red-700 p-3 font-inter text-sm">{error}</div>}
-      <button type="submit" disabled={!stripe || loading} className="w-full bg-black text-white py-4 font-inter text-xs tracking-[0.2em] disabled:opacity-50">{loading ? 'PROCESSING...' : `PAY ${money(total)}`}</button>
+      <button type="submit" disabled={!stripe || loading} className="w-full bg-black text-white py-4 font-inter text-xs tracking-[0.2em] hover:bg-neutral-800 transition-colors disabled:opacity-50">{loading ? 'PROCESSING...' : `PAY ${money(total)}`}</button>
     </form>
   );
 }

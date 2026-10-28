@@ -20,7 +20,7 @@ const BRANDS = [
 
 const TICKER_ITEMS = [
   'SAINT LAURENT', 'GUCCI', 'PRADA', 'VALENTINO', 'BURBERRY', 'AMIRI',
-  'OFF-WHITE', 'BALENCIAGA', 'DIOR', 'DISCOVER SALE FINDS', 'EXPLORE THE EDIT',
+  'OFF-WHITE', 'BALENCIAGA', 'DIOR', 'CURATED LUXURY', 'UNCOVERED PRICES', 'EXPLORE THE EDIT',
 ];
 
 export default function HomePage() {
@@ -82,7 +82,7 @@ export default function HomePage() {
 
           <div className="absolute inset-0 flex flex-col items-center justify-end pb-20 md:pb-28 px-4 text-center">
             <p className="hero-line-1 font-inter text-[10px] tracking-[0.45em] text-white/60 mb-5 uppercase">
-              Luxury Finds · Uncovered
+              Luxury Resale · Redefined
             </p>
             <h1 className="hero-line-2 font-playfair text-[72px] md:text-[110px] lg:text-[140px] text-white leading-[0.9] tracking-tight mb-10">
               DIRTY<br />APPLE
@@ -308,6 +308,32 @@ export default function HomePage() {
             Shop the Collection
           </Link>
         </section>
+
+        {/* ── FOOTER ── */}
+        <footer className="border-t border-white/8 py-14 px-8">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="font-playfair text-2xl text-white tracking-wide">Dirty Apple</p>
+            <div className="flex flex-wrap justify-center gap-6 md:gap-10">
+              {[
+                { label: 'Shop',        href: '/shop' },
+                { label: 'Bags',        href: '/shop?category=bags' },
+                { label: 'Shoes',       href: '/shop?category=shoes' },
+                { label: 'Clothing',    href: '/shop?category=clothing' },
+                { label: 'Accessories', href: '/shop?category=accessories' },
+                { label: 'Sale',        href: '/collections/sale' },
+              ].map(l => (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  className="font-inter text-[10px] tracking-[0.25em] text-white/30 hover:text-white transition-colors uppercase"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+            <p className="font-inter text-[10px] text-white/15">© {new Date().getFullYear()} Dirty Apple</p>
+          </div>
+        </footer>
 
       </div>
     </>

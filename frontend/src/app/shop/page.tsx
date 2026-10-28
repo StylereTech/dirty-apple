@@ -175,7 +175,7 @@ function ShopInner() {
                 >
                   PREV
                 </button>
-                <span className="font-inter text-sm text-gray-500">Page {page} of {totalPages}</span>
+                <span className="font-inter text-sm text-gray-500">{page} / {totalPages}</span>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}

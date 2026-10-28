@@ -59,13 +59,23 @@ External retailer offers always complete purchase with the retailer and never en
 
 CI verifies frontend and backend separately on Node 22: locked dependency installation, type checks, tests, production builds and high-severity dependency audits. Database integration tests use disposable local MongoDB and never a production URI. First test execution needs access to download a MongoDB binary.
 
-The repository's root `vercel.json` builds `frontend`; Railway's root configuration builds `server`. If a service is configured with a subdirectory as its project root, use the matching subdirectory configuration and avoid applying both root and subdirectory build commands.
+### Railway API
+
+Use the existing API service with repository root `/`, configuration file `/railway.json`, builder `DOCKERFILE`, and Dockerfile path `Dockerfile.backend`. The Docker build needs the complete repository context because its copy instructions read `server/package*.json`, `server/tsconfig.json` and `server/src`.
+
+The final image runs from `/app` and contains `dist/` plus its production dependencies. Its start command is `node dist/index.js`, matching `railway.json` and the image's default command. Remove any inherited `cd server` start command: the runtime image has no `server/` subdirectory. Keep the healthcheck at `/api/health` and let Railway supply `PORT`.
 
 ```bash
 docker build -f Dockerfile.backend -t dirty-apple-server .
 ```
 
 Container production dependencies are locked and the backend process runs as the unprivileged `node` user. Docker image execution itself still requires validation in the deployment environment.
+
+### Vercel frontend
+
+For a Vercel project with Root Directory `frontend`, install with `npm ci`, build with `npm run build`, and use the default Next.js output `.next`. Clear inherited command overrides that prefix `cd frontend`, since commands already run inside that directory. The repository-root `vercel.json` uses prefixed commands for a root-based build and should not be combined with subdirectory command overrides.
+
+Preserve the existing frontend design, logo and editorial assets while restoring hosting. Provider configuration repairs do not require changes to the storefront's visual layout.
 
 ## Rollback
 
