@@ -11,6 +11,7 @@ export interface IScrapeJob extends Document {
   truncated: boolean;
   activeRetailer?: string;
   leaseExpiresAt?: Date;
+  leaseToken?: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
   productsFound: number;
   productsSaved: number;
@@ -32,6 +33,7 @@ const ScrapeJobSchema = new Schema<IScrapeJob>({
   truncated: { type: Boolean, default: false },
   activeRetailer: { type: String },
   leaseExpiresAt: { type: Date },
+  leaseToken: { type: String },
   status: { 
     type: String, 
     enum: ['pending', 'running', 'completed', 'failed'], 

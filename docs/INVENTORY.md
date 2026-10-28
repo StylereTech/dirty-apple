@@ -78,7 +78,7 @@ External listings use `purchaseMode: external`. Their price is the source offer 
 
 Explicit full-price or sold-out feed refreshes remove offers immediately. The strict HTML collector omits non-discounted or ambiguous records; offers missing from its bounded sample remain subject to freshness expiry, not automatic catalog deletion.
 
-Use the source's observation timestamp, not the time an old export was uploaded. Obtain and ingest source updates at a suitable cadence before public launch. The collection worker consumes queued jobs; it is not an automatic full-catalog feed subscription or scheduler.
+Use the source's observation timestamp, not the time an old export was uploaded. Obtain and ingest source updates at a suitable cadence before public launch. The collection worker consumes queued jobs; its execution schedule does not create an automatic full-catalog feed subscription.
 
 ## Collection jobs
 
@@ -88,11 +88,31 @@ Use the source's observation timestamp, not the time an old export was uploaded.
 { "retailer": "mrporter", "maxPages": 5 }
 ```
 
-Optional `url` must belong to that retailer. Optional `category` is appropriate only for a source page limited to that category. `maxPages` is 1–10. Jobs persist in MongoDB, and the worker atomically claims pending jobs after startup. One active job per retailer is enforced by an index. Interrupted running jobs eventually fail visibly when their lease expires; they are not labeled completed.
+Optional `url` must belong to that retailer. Optional `category` is appropriate only for a source page limited to that category. `maxPages` is 1–10. Jobs persist in MongoDB, and a worker atomically claims one pending job per invocation. One active job per retailer is enforced by an index. Interrupted running jobs eventually fail visibly when their lease expires; they are not labeled completed.
 
 The crawler uses an identifiable user agent, respects robots rules, validates DNS and redirects, restricts hosts, enforces request/body/time limits and request spacing, and stops on challenges, throttling or access failures. It extracts explicit Product/Offer JSON-LD. An empty or unverifiable response is a failure, not a successful scrape. It records warnings and partial coverage when a page budget is reached.
 
 The public adapters have fixture coverage. Actual retailer markup compatibility must be verified against production source responses before relying on them. They do not promise all sale items, variants, pagination or stock coverage. Prefer complete approved feeds for large catalogs.
+
+### Vercel execution
+
+The API's Vercel project uses `GET /api/internal/inventory/run` to drain **one already queued job**. It does not enqueue sources, expand collection scope, publish new drafts, or operate as a feed subscription. The standalone process can still use `SCRAPE_WORKER_ENABLED=true`; no interval worker starts in a Vercel invocation.
+
+Set the following server-only variables on the API project:
+
+| Variable | Purpose |
+| --- | --- |
+| `CRON_SECRET` | Random secret of at least 32 characters, separate from `ADMIN_API_TOKEN`. Vercel supplies it in `Authorization: Bearer …` for cron requests. Missing/short secrets fail closed. |
+| `INVENTORY_CRON_ENABLED` | Must be exactly `true` after the target MongoDB database and queue have been verified. Otherwise authenticated cron calls return 503 and do no work. |
+| `SCRAPE_WORKER_ENABLED` | Set `false` on Vercel; use the awaited scheduler route instead. |
+
+Only GET can start work; HEAD and other methods return 405. Unauthenticated requests return 401, responses are never cached, and database errors do not expose connection strings. The HTTP response is sent only after the worker finishes. `processed: false` means no queued job was available. `processed: true` means a job was claimed; inspect its persisted status and errors to determine whether the source collection succeeded.
+
+Each invocation has at most a 240-second work budget inside a 300-second function limit. Connection and index startup time is included: work stops no later than 260 seconds after request entry, reserving 40 seconds for a bounded in-flight database operation and finalization. If startup leaves less than one second of work time, the endpoint returns 503 before claiming a job. The collector itself stops within 150 seconds. Imports stop between bounded database operations when the budget expires, retaining confirmed save counts. The lease includes an additional 60 seconds for finalization. A unique claim token prevents a late invocation from overwriting a recovered job, and lease ownership is checked again before any import begins. The next invocation marks expired running leases failed and releases the retailer lock. Retry through a new bounded queue job; there is no automatic replay of failed source requests. Stable offer identities and existing publication guards make already committed writes safe to refresh again.
+
+The conservative schedule is `0 11 * * *` (11:00 UTC daily; 6 a.m. Dallas during daylight saving time and 5 a.m. during standard time). This respects a once-daily scheduler allowance while the hosting plan is verified. **One queued job per day is not a production catalog-refresh plan**, particularly with the default 24-hour freshness cutoff. Before relying on ongoing listings, connect approved feeds and set a cadence supported by the account and retailer terms that refreshes every active source before expiry. No promises of complete retailer inventory follow from this schedule. A queued job can be run sooner through the API project's authenticated Vercel Cron Jobs controls.
+
+Official platform references: [securing and managing cron jobs](https://vercel.com/docs/cron-jobs/manage-cron-jobs), [cron usage limits](https://vercel.com/docs/cron-jobs/usage-and-pricing), and [function duration limits](https://vercel.com/docs/functions/limitations).
 
 ## Bulk CLI
 

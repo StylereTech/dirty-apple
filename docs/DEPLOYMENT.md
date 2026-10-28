@@ -11,7 +11,9 @@ Keep database, Stripe and administrator secrets in the deployment environment. D
 | API | `APP_URL` or `CORS_ORIGINS` | Exact trusted frontend origin(s); comma-separated for multiple origins. |
 | API | `ADMIN_API_TOKEN` | Unique secret at least 32 characters; required for inventory, imports, order administration. |
 | API | `PORT` | Host-assigned port or 4000. |
-| API | `SCRAPE_WORKER_ENABLED` | Defaults on; `false` disables this process's queue worker. |
+| API | `SCRAPE_WORKER_ENABLED` | Standalone process only. Set `false` on Vercel; no interval starts in a Vercel function. |
+| API | `CRON_SECRET` | Separate server-only secret of at least 32 characters; Vercel supplies it in the scheduled request's bearer header. |
+| API | `INVENTORY_CRON_ENABLED` | Defaults off. Enable only after the database, queue, and source operating plan have been verified. |
 | API | `OFFER_MAX_AGE_HOURS` | Defaults 24; allowed range 1–168. |
 | API | `DIRECT_CHECKOUT_ENABLED` | Defaults off. Leave off for retailer-link launch. |
 | API | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Required only for explicitly enabled direct checkout. |
@@ -26,12 +28,14 @@ Generate an admin token with a cryptographically secure password manager or a lo
 
 1. Take a database backup and use a staging database for the first migration/verification.
 2. Inspect existing products, orders and carts before building indexes. Resolve duplicate product SKU/slug, source identity, checkout identity or Stripe payment ID records deliberately. Do not bulk-delete catalog data to make startup succeed.
-3. Start the new API. It waits for MongoDB and Cart, Order, Product and ScrapeJob indexes before accepting requests. An index conflict intentionally blocks startup.
+3. Start the new API. It waits for MongoDB and Cart, Order, Product, ScrapeJob and PriceHistory indexes before accepting database requests. An index conflict intentionally blocks readiness. Index creation is additive and preserves existing records and custom indexes.
 4. Confirm `/api/health` returns 200 with `database: connected`; disconnect/reconnect checks should show 503 while unavailable.
 5. Configure frontend `API_URL` to that working service. Test public catalog and admin authentication through the deployed frontend proxy.
 6. Inspect legacy inventory. Public queries hide demo-marked products and known `picsum.photos` seed images. Organize legitimate catalog records through admin; no production cleanup is automatically executed.
 
-The audit observed HTTP 404 at the repository's former hardcoded Railway API health and catalog URLs. That old fallback was removed. A replacement deployment or correct current origin must be supplied; the code change alone cannot restore a nonexistent service.
+The application uses one server-only `MONGODB_URI` and shared models for the inventory, price history, cart, order and collection-job flow. Inspect the actual account before merging any additional databases; the repository does not define a multi-database migration. Retain the existing dirtyApple database unless an identified data migration is required.
+
+The audit observed HTTP 404 at the repository's former hardcoded Railway API health and catalog URLs. That old fallback was removed. Vercel can host both the frontend and Express API; Railway is optional. A configured database connection is still required for the API to become ready.
 
 ## Retailer-link launch
 
@@ -59,7 +63,19 @@ External retailer offers always complete purchase with the retailer and never en
 
 CI verifies frontend and backend separately on Node 22: locked dependency installation, type checks, tests, production builds and high-severity dependency audits. Database integration tests use disposable local MongoDB and never a production URI. First test execution needs access to download a MongoDB binary.
 
-### Railway API
+### Vercel API (current release target)
+
+Use the `dirty-apple-api` project in the same Vercel team as the frontend. Set Root Directory to `server`, framework to `express`, Node.js to `22.x`, install command to `npm ci`, and build command to `npm run build`. Keep the framework's default output directory. The repository configuration is `server/vercel.json`.
+
+Vercel detects `src/app.ts` before `src/index.ts`. The default application export therefore awaits cached MongoDB startup before serving database routes; importing it starts neither a TCP listener nor an interval worker. Concurrent cold requests share a bounded pool and the same pending initialization. Failed connections or index initialization return generic, uncached 503 responses and can retry after backoff. The raw request stream remains intact for Stripe signature verification.
+
+Set `MONGODB_URI` only in the intended environment after verifying the existing dirtyApple cluster/database. Production credentials must not be copied into ordinary preview deployments. Use a separate staging database for mutation tests. A successfully built function that returns 503 for a missing connection is not a production-ready API.
+
+The function limit is 300 seconds. The authenticated `GET /api/internal/inventory/run` endpoint drains at most one previously queued job and awaits completion. Its budget includes cold database initialization and reserves time for finalization. The checked-in daily schedule is a conservative infrastructure baseline, not a complete retailer refresh service. Establish a plan-compatible cadence or a reviewed external scheduler before relying on continuously fresh inventory; see [Inventory operations](INVENTORY.md).
+
+Deploy an exact reviewed commit, verify the hosted entrypoint and build logs, and run [Release verification](RELEASE_VERIFICATION.md). Keep preview protection enabled. The frontend's server must be able to reach the API's selected production origin; a protected preview is not automatically a usable upstream. Change the frontend's server-only `API_URL` after that origin is verified, then test the exact production build before changing the public domain.
+
+### Railway API (optional existing configuration)
 
 Use the existing API service with repository root `/`, configuration file `/railway.json`, builder `DOCKERFILE`, and Dockerfile path `Dockerfile.backend`. The Docker build needs the complete repository context because its copy instructions read `server/package*.json`, `server/tsconfig.json` and `server/src`.
 

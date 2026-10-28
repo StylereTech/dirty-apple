@@ -13,7 +13,20 @@ export function nextOfferStatus(offer: NormalizedOffer, existingStatus?: string)
   return existingStatus === 'active' ? 'active' : 'draft';
 }
 
-export async function importOffers(records: unknown[], retailer: RetailerId, sourceType: 'feed' | 'scrape' = 'feed') {
+export interface ImportOptions {
+  /** A caller can stop between writes without losing already committed, idempotent offers. */
+  signal?: AbortSignal;
+}
+
+export class ImportInterruptedError extends Error {
+  constructor(public readonly created: number, public readonly updated: number, public readonly skipped: number) {
+    super('Import execution was interrupted; committed offers can be retried safely');
+    this.name = 'ImportInterruptedError';
+  }
+}
+
+export async function importOffers(records: unknown[], retailer: RetailerId, sourceType: 'feed' | 'scrape' = 'feed', options: ImportOptions = {}) {
+  options.signal?.throwIfAborted();
   const preview = previewOffers(records, retailer, sourceType);
   if (preview.errors.length) {
     return { ...preview, offers: undefined, committed: false, created: 0, updated: 0, skipped: 0, failures: [] };
@@ -23,9 +36,14 @@ export async function importOffers(records: unknown[], retailer: RetailerId, sou
   let skipped = 0;
   const failures: { sku: string; error: string }[] = [];
   const warnings: string[] = [];
+  const checkBudget = () => {
+    if (options.signal?.aborted) throw new ImportInterruptedError(created, updated, skipped);
+  };
   for (const offer of preview.offers) {
+    checkBudget();
     try {
-      const existing = await Product.findOne({ retailerId: retailer, externalProductId: offer.externalProductId, variantId: offer.variantId });
+      const existing = await Product.findOne({ retailerId: retailer, externalProductId: offer.externalProductId, variantId: offer.variantId }, null, { maxTimeMS: 5_000 });
+      checkBudget();
       if ((!existing && (!offer.inStock || !offer.isOnSale)) ||
           (existing?.lastVerifiedAt && existing.lastVerifiedAt > offer.lastVerifiedAt)) { skipped++; continue; }
       const oldPrice = existing?.ourPrice;
@@ -45,12 +63,13 @@ export async function importOffers(records: unknown[], retailer: RetailerId, sou
           $set: { ...organizedOffer, slug: existing?.slug || offer.slug, status: nextOfferStatus(organizedOffer, existing?.status) },
           ...(!offer.promotion ? { $unset: { promotion: '' } } : {}),
         } : { $setOnInsert: { ...organizedOffer, status: nextOfferStatus(organizedOffer), featured: false, createdAt: offer.lastScraped, updatedAt: offer.lastScraped } },
-        { upsert: !existing, new: true, runValidators: true, includeResultMetadata: true, timestamps: !!existing },
+        { upsert: !existing, new: true, runValidators: true, includeResultMetadata: true, timestamps: !!existing, maxTimeMS: 5_000 },
       );
       const product = result.value;
       if (!product) { skipped++; continue; }
       if (!existing && !result.lastErrorObject?.upserted) { skipped++; continue; }
       if (result.lastErrorObject?.upserted) created++; else updated++;
+      checkBudget();
       if (oldPrice !== offer.ourPrice) {
         try {
           await PriceHistory.create({
@@ -61,6 +80,9 @@ export async function importOffers(records: unknown[], retailer: RetailerId, sou
         } catch { warnings.push(`Offer ${offer.sku} saved, but its price history could not be recorded`); }
       }
     } catch (error) {
+      // A bounded worker must stop issuing writes, rather than counting a timeout as
+      // an ordinary row failure and continuing through the rest of a large batch.
+      checkBudget();
       const duplicate = (error as { code?: number }).code === 11000;
       failures.push({ sku: offer.sku, error: duplicate ? 'Concurrent or conflicting import; retry this offer' : 'Unable to save offer; check database availability' });
     }

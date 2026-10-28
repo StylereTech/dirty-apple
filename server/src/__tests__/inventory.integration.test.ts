@@ -11,7 +11,7 @@ import { PriceHistory } from '../models/PriceHistory';
 import { ScrapeJob } from '../models/ScrapeJob';
 import { normalizeOffer } from '../inventory/normalize';
 import { importOffers } from '../inventory/importer';
-import { processNextScrapeJob } from '../inventory/worker';
+import { createScrapeJobProcessor, processNextScrapeJob } from '../inventory/worker';
 
 function source(patch: Record<string, unknown> = {}) {
   return {
@@ -216,6 +216,47 @@ test('isolated real MongoDB inventory and catalog integration', {
       assert.equal(job.leaseExpiresAt, undefined);
       assert.match(job.errorMessages.join(' '), /lease expired/);
       await ScrapeJob.create({ jobId: 'retry-test-job', retailer: 'nordstrom', activeRetailer: 'nordstrom', sourceType: 'scrape', status: 'pending' });
+    });
+
+    await t.test('concurrent bounded workers atomically claim one job and save one reviewed draft', async () => {
+      await ScrapeJob.create({ jobId: 'one-claim', retailer: 'nordstrom', activeRetailer: 'nordstrom', sourceType: 'scrape', status: 'pending' });
+      let collections = 0;
+      const process = createScrapeJobProcessor({ collect: async () => {
+        collections++;
+        return { records: [source()], pagesVisited: 1, warnings: [], truncated: false };
+      } });
+      assert.deepEqual((await Promise.all([process(), process()])).sort(), [false, true]);
+      assert.equal(collections, 1);
+      assert.equal(await Product.countDocuments(), 1);
+      assert.equal((await Product.findOne().orFail()).status, 'draft');
+      const job = await ScrapeJob.findOne({ jobId: 'one-claim' }).orFail();
+      assert.equal(job.status, 'completed');
+      assert.equal(job.productsSaved, 1);
+      assert.equal(job.leaseToken, undefined);
+      assert.equal(job.activeRetailer, undefined);
+    });
+
+    await t.test('a late worker cannot import or complete after another invocation recovers its expired lease', async () => {
+      await ScrapeJob.create({ jobId: 'late-worker', retailer: 'nordstrom', activeRetailer: 'nordstrom', sourceType: 'scrape', status: 'pending' });
+      let started!: () => void;
+      const began = new Promise<void>(resolve => { started = resolve; });
+      let release!: () => void;
+      const held = new Promise<void>(resolve => { release = resolve; });
+      const process = createScrapeJobProcessor({ collect: async () => {
+        started(); await held;
+        return { records: [source()], pagesVisited: 1, warnings: [], truncated: false };
+      } });
+      const late = process();
+      await began;
+      try {
+        await ScrapeJob.updateOne({ jobId: 'late-worker' }, { $set: { leaseExpiresAt: new Date(Date.now() - 1_000) } });
+        assert.equal(await processNextScrapeJob(), false);
+      } finally { release(); }
+      await late;
+      const job = await ScrapeJob.findOne({ jobId: 'late-worker' }).orFail();
+      assert.equal(job.status, 'failed');
+      assert.match(job.errorMessages.join(' '), /lease expired/);
+      assert.equal(await Product.countDocuments(), 0);
     });
   } finally {
     if (server) { server.closeAllConnections(); await new Promise<void>(resolve => server!.close(() => resolve())); }
