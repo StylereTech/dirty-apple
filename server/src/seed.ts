@@ -91,14 +91,17 @@ const seedRetailers = [
 
 async function seed() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/dirty-apple';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/dirty-apple-demo';
+    if (process.env.NODE_ENV === 'production' || process.env.ALLOW_DEMO_SEED !== 'true' ||
+        !/^mongodb:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?\/dirty-apple-demo(?:\?|$)/.test(mongoUri)) {
+      throw new Error('Demo seed requires ALLOW_DEMO_SEED=true and a local dirty-apple-demo database; it is disabled in production');
+    }
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 
-    await Product.deleteMany({});
-    await Retailer.deleteMany({});
-    await PriceHistory.deleteMany({});
-    console.log('Cleared existing data');
+    const demoIds = await Product.find({ sourceType: 'demo' }).distinct('_id');
+    await PriceHistory.deleteMany({ product: { $in: demoIds } });
+    await Product.deleteMany({ sourceType: 'demo' });
 
     const sizeType = (cat: string) => {
       switch (cat) {
@@ -117,7 +120,8 @@ async function seed() {
       featured: p.featured || false,
       isOnSale: p.isOnSale || false,
       isClearance: false,
-      status: 'active' as const,
+      status: 'draft' as const,
+      sourceType: 'demo' as const,
       collectionSlug: (p as any).collectionSlug || undefined,
       tags: p.tags || [],
     }));
@@ -138,15 +142,15 @@ async function seed() {
     await PriceHistory.insertMany(priceHistories);
     console.log(`Inserted ${priceHistories.length} price history entries`);
 
-    await Retailer.insertMany(seedRetailers);
+    await Retailer.bulkWrite(seedRetailers.map(retailer => ({ updateOne: { filter: { name: retailer.name }, update: { $set: retailer }, upsert: true } })));
     console.log(`Inserted ${seedRetailers.length} retailers`);
 
     console.log('Seed completed successfully!');
   } catch (error) {
     console.error('Seed error:', error);
+    process.exitCode = 1;
   } finally {
     await mongoose.disconnect();
-    process.exit(0);
   }
 }
 

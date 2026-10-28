@@ -1,96 +1,66 @@
 import express from 'express';
 import Stripe from 'stripe';
 import { Order } from '../models/Order';
+import { getStripeServer } from '../lib/stripe';
+import { recordPayment } from '../lib/orders';
 
-const router = express.Router();
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-  apiVersion: '2024-06-20' as any,
-});
-
-// POST /api/webhooks/stripe - Handle Stripe webhooks
-router.post('/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'] as string;
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  let event: Stripe.Event;
-
-  try {
-    if (endpointSecret && sig) {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-    } else {
-      event = JSON.parse(req.body);
-    }
-  } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+/** Mounted before express.json() so Stripe receives exactly the signed bytes. */
+export const stripeWebhookHandler: express.RequestHandler = async (req, res) => {
+  const signature = req.get('stripe-signature');
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret || !webhookSecret.startsWith('whsec_') || /placeholder|your_webhook/i.test(webhookSecret)) {
+    res.status(503).json({ error: 'Stripe webhook is not configured' });
+    return;
   }
-
-  console.log('Stripe webhook received:', event.type);
-
+  if (!signature || !Buffer.isBuffer(req.body)) {
+    res.status(400).json({ error: 'A signed raw webhook payload is required' });
+    return;
+  }
+  let event: Stripe.Event;
   try {
-    switch (event.type) {
-      case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log('Payment succeeded:', paymentIntent.id);
-        
-        if (paymentIntent.metadata?.orderId) {
-          await Order.findByIdAndUpdate(paymentIntent.metadata.orderId, {
-            paymentStatus: 'paid',
-            fulfillmentStatus: 'processing',
-          });
-        }
-        break;
-      }
-      
-      case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log('Payment failed:', paymentIntent.id);
-        
-        if (paymentIntent.metadata?.orderId) {
-          await Order.findByIdAndUpdate(paymentIntent.metadata.orderId, {
-            paymentStatus: 'failed',
-          });
-        }
-        break;
-      }
-      
-      case 'charge.refunded': {
-        const charge = event.data.object as Stripe.Charge;
-        console.log('Charge refunded:', charge.id);
-        
-        if (charge.payment_intent) {
-          const order = await Order.findOne({ stripePaymentId: charge.payment_intent });
-          if (order) {
-            order.paymentStatus = 'refunded';
-            order.fulfillmentStatus = 'cancelled';
-            await order.save();
+    event = getStripeServer().webhooks.constructEvent(req.body, signature, webhookSecret);
+  } catch {
+    res.status(400).json({ error: 'Invalid webhook signature' });
+    return;
+  }
+  try {
+    if (event.type === 'payment_intent.succeeded') {
+      const intent = event.data.object as Stripe.PaymentIntent;
+      const order = await Order.findOne({ stripePaymentId: intent.id });
+      if (order) await recordPayment(order, intent);
+    } else if (event.type === 'payment_intent.payment_failed') {
+      const intent = event.data.object as Stripe.PaymentIntent;
+      // A delayed failure must not undo a later success or refund.
+      await Order.updateOne(
+        { stripePaymentId: intent.id, paymentStatus: 'pending' },
+        { $set: { paymentStatus: 'failed' } },
+      );
+    } else if (event.type === 'charge.refunded') {
+      const charge = event.data.object as Stripe.Charge;
+      const paymentIntentId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id;
+      if (paymentIntentId) {
+        const order = await Order.findOne({ stripePaymentId: paymentIntentId });
+        if (order) {
+          if (charge.currency !== 'usd' || charge.amount !== Math.round(order.total * 100)) throw new Error('Refund amount mismatch');
+          const update: Record<string, any> = { $max: { refundedAmount: charge.amount_refunded / 100 } };
+          if (charge.refunded && charge.amount_refunded >= charge.amount) {
+            update.$set = { paymentStatus: 'refunded' };
+          }
+          await Order.updateOne({ _id: order._id }, update);
+          if (charge.refunded && charge.amount_refunded >= charge.amount) {
+            // Compare the current state atomically; a concurrent shipment must not be reset.
+            await Order.updateOne({ _id: order._id, fulfillmentStatus: { $in: ['pending', 'processing'] } }, { $set: { fulfillmentStatus: 'cancelled' } });
           }
         }
-        break;
       }
-      
-      case 'account.updated': {
-        const account = event.data.object as Stripe.Account;
-        console.log('Connect account updated:', account.id);
-        break;
-      }
-      
-      case 'transfer.created': {
-        const transfer = event.data.object as Stripe.Transfer;
-        console.log('Transfer created:', transfer.id);
-        break;
-      }
-      
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
     }
-
     res.json({ received: true });
   } catch (error: any) {
-    console.error('Webhook processing error:', error);
-    res.status(500).json({ error: 'Webhook processing failed' });
+    console.error('Webhook reconciliation failed:', error?.name || 'Error');
+    res.status(500).json({ error: 'Webhook reconciliation failed' });
   }
-});
+};
 
+const router = express.Router();
+router.post('/stripe', express.raw({ type: 'application/json', limit: '1mb' }), stripeWebhookHandler);
 export default router;

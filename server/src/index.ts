@@ -1,51 +1,40 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import mongoose from 'mongoose';
-import productRoutes from './routes/products';
-import cartRoutes from './routes/cart';
-import checkoutRoutes from './routes/checkout';
-import orderRoutes from './routes/orders';
-import scrapeRoutes from './routes/scrape';
-import webhookRoutes from './routes/webhooks';
+import app from './app';
+import { Cart } from './models/Cart';
+import { Order } from './models/Order';
+import { Product } from './models/Product';
+import { ScrapeJob } from './models/ScrapeJob';
+import { startScrapeWorker } from './inventory/worker';
 
-dotenv.config();
-
-const app = express();
-const PORT = process.env.PORT || 4000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
-app.use('/api/products', productRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/checkout', checkoutRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/scrape', scrapeRoutes);
-app.use('/api/webhooks', webhookRoutes);
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-// Connect to MongoDB and start server
-const startServer = async () => {
-  try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/dirty-apple';
-    await mongoose.connect(mongoUri);
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.warn('MongoDB connection failed, running in mock mode:', error);
+export async function startServer() {
+  const port = Number(process.env.PORT || 4000);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid PORT');
+  if (process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI) throw new Error('MONGODB_URI is required in production');
+  if (process.env.NODE_ENV === 'production' && !(process.env.CORS_ORIGINS || process.env.APP_URL)) {
+    throw new Error('CORS_ORIGINS or APP_URL is required in production');
   }
+  mongoose.set('bufferCommands', false);
+  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/dirty-apple', { serverSelectionTimeoutMS: 10000 });
+  // Checkout/session uniqueness is a correctness requirement, not an optional optimization.
+  await Promise.all([Cart.init(), Order.init(), Product.init(), ScrapeJob.init()]);
+  const stopWorker = process.env.SCRAPE_WORKER_ENABLED === 'false' ? () => {} : startScrapeWorker();
+  const server = app.listen(port, () => console.log(`Server listening on port ${port}`));
+  const shutdown = () => {
+    stopWorker();
+    server.close(() => { void mongoose.disconnect().finally(() => process.exit(0)); });
+    setTimeout(() => process.exit(1), 10000).unref();
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
+  return server;
+}
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+if (require.main === module) {
+  startServer().catch((error: Error) => {
+    console.error('Server startup failed:', error.name);
+    process.exitCode = 1;
   });
-};
-
-startServer();
+}
 
 export default app;

@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: 'DIRTY APPLE | Curated Luxury Fashion',
-  description: 'Discover luxury fashion at uncovered prices. Shop Gucci, Prada, Saint Laurent, Balenciaga and more at up to 40% off retail.',
+  description: 'Discover fashion sale listings from mainstream retailers. Explore brands, compare prices and visit the retailer for current availability.',
   keywords: ['luxury fashion', 'designer deals', 'Gucci sale', 'Prada sale', 'luxury markdowns'],
 };
 

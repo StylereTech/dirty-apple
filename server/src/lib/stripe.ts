@@ -6,16 +6,18 @@
 import Stripe from 'stripe';
 
 let stripeInstance: Stripe | null = null;
+let stripeKey: string | null = null;
 
 export const getStripeServer = (): Stripe => {
-  if (!stripeInstance) {
-    const secretKey = process.env.STRIPE_SECRET_KEY;
-    if (!secretKey) {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey || !/^sk_(test|live)_/.test(secretKey) || /placeholder|your_stripe/i.test(secretKey)) {
       throw new Error('STRIPE_SECRET_KEY is not configured');
-    }
+  }
+  if (!stripeInstance || stripeKey !== secretKey) {
     stripeInstance = new Stripe(secretKey, {
       typescript: true,
     });
+    stripeKey = secretKey;
   }
   return stripeInstance;
 };
@@ -42,6 +44,7 @@ export async function createPaymentIntent(
 ): Promise<Stripe.PaymentIntent> {
   const stripe = getStripeServer();
 
+  if (!Number.isSafeInteger(amount)) throw new Error('Amount must be an integer in cents');
   if (amount < 50) throw new Error('Minimum amount is $0.50');
   if (amount > 99999999) throw new Error('Maximum amount is $999,999.99');
 

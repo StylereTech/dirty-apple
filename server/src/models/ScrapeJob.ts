@@ -5,6 +5,12 @@ export interface IScrapeJob extends Document {
   retailer: string;
   category?: string;
   url?: string;
+  sourceType: 'feed' | 'scrape';
+  maxPages: number;
+  pagesVisited: number;
+  truncated: boolean;
+  activeRetailer?: string;
+  leaseExpiresAt?: Date;
   status: 'pending' | 'running' | 'completed' | 'failed';
   productsFound: number;
   productsSaved: number;
@@ -20,6 +26,12 @@ const ScrapeJobSchema = new Schema<IScrapeJob>({
   retailer: { type: String, required: true, index: true },
   category: { type: String },
   url: { type: String },
+  sourceType: { type: String, enum: ['feed', 'scrape'], default: 'scrape' },
+  maxPages: { type: Number, min: 1, max: 10, default: 5 },
+  pagesVisited: { type: Number, default: 0 },
+  truncated: { type: Boolean, default: false },
+  activeRetailer: { type: String },
+  leaseExpiresAt: { type: Date },
   status: { 
     type: String, 
     enum: ['pending', 'running', 'completed', 'failed'], 
@@ -35,5 +47,6 @@ const ScrapeJobSchema = new Schema<IScrapeJob>({
 
 ScrapeJobSchema.index({ createdAt: -1 });
 ScrapeJobSchema.index({ status: 1, createdAt: -1 });
+ScrapeJobSchema.index({ activeRetailer: 1 }, { unique: true, sparse: true });
 
 export const ScrapeJob = mongoose.model<IScrapeJob>('ScrapeJob', ScrapeJobSchema);

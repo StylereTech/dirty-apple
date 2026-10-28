@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { apiRequest } from '@/lib/api';
+import { Product, ProductPage, money } from '@/lib/catalog';
 
 const CATEGORIES = [
   { name: 'Bags',        slug: 'bags',        image: '/cat-bags.jpg' },
@@ -18,22 +20,20 @@ const BRANDS = [
 
 const TICKER_ITEMS = [
   'SAINT LAURENT', 'GUCCI', 'PRADA', 'VALENTINO', 'BURBERRY', 'AMIRI',
-  'OFF-WHITE', 'BALENCIAGA', 'DIOR', 'UP TO 70% OFF', 'FREE RETURNS', 'SAME-DAY DELIVERY',
+  'OFF-WHITE', 'BALENCIAGA', 'DIOR', 'DISCOVER SALE FINDS', 'EXPLORE THE EDIT',
 ];
 
 export default function HomePage() {
-  const [featured, setFeatured] = useState<any[]>([]);
-  const API = process.env.NEXT_PUBLIC_API_URL || 'https://dirty-apple-api-production.up.railway.app';
+  const [featured, setFeatured] = useState<Product[]>([]);
+  const [catalogError, setCatalogError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API}/api/products?featured=true&limit=4&sort=price-low`)
-      .then(r => r.json())
-      .then(d => setFeatured(d.products || []))
-      .catch(() => {});
+    const controller = new AbortController();
+    apiRequest<ProductPage>('/products?featured=true&inStock=true&limit=4&sort=price-low', { signal: controller.signal })
+      .then(data => { if (!controller.signal.aborted) setFeatured(data.products); })
+      .catch(() => { if (!controller.signal.aborted) setCatalogError(true); });
+    return () => controller.abort();
   }, []);
-
-  const fmt = (n: number) =>
-    Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
   return (
     <>
@@ -68,7 +68,7 @@ export default function HomePage() {
         .hero-cta    { opacity: 0; animation: heroFade 1s ease 0.8s forwards; }
       `}</style>
 
-      <main className="bg-black min-h-screen">
+      <div className="bg-black min-h-screen">
 
         {/* ── HERO ── */}
         <section className="relative h-screen w-full overflow-hidden">
@@ -82,7 +82,7 @@ export default function HomePage() {
 
           <div className="absolute inset-0 flex flex-col items-center justify-end pb-20 md:pb-28 px-4 text-center">
             <p className="hero-line-1 font-inter text-[10px] tracking-[0.45em] text-white/60 mb-5 uppercase">
-              Luxury Resale · Redefined
+              Luxury Finds · Uncovered
             </p>
             <h1 className="hero-line-2 font-playfair text-[72px] md:text-[110px] lg:text-[140px] text-white leading-[0.9] tracking-tight mb-10">
               DIRTY<br />APPLE
@@ -221,6 +221,7 @@ export default function HomePage() {
         </section>
 
         {/* ── FEATURED DROPS ── */}
+        {catalogError && <div role="status" className="max-w-7xl mx-auto px-4 py-8 text-center text-white/70 text-sm">Current listings are temporarily unavailable. <Link href="/shop" className="underline">Try the shop again</Link>.</div>}
         {featured.length > 0 && (
           <section className="bg-neutral-950 px-4 md:px-8 py-24">
             <div className="max-w-7xl mx-auto">
@@ -238,11 +239,11 @@ export default function HomePage() {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {featured.map((p: any) => (
-                  <Link key={p._id} href={`/product/${p._id}`} className="group">
+                {featured.map((p) => (
+                  <Link key={p._id} href={`/product/${encodeURIComponent(p.slug || p._id)}`} className="group">
                     <div className="aspect-[3/4] overflow-hidden bg-white border border-gray-100 mb-3 relative">
                       <img
-                        src={p.images?.[0] || '/cat-clothing.jpg'}
+                        src={p.images?.[0]}
                         alt={p.name}
                         className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
                       />
@@ -257,10 +258,10 @@ export default function HomePage() {
                     </p>
                     <p className="font-inter text-sm text-white mb-2 truncate">{p.name}</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="font-inter text-sm text-white">${fmt(p.ourPrice)}</span>
-                      {p.originalPrice && (
+                      <span className="font-inter text-sm text-white">{money(p.ourPrice, p.currency)}</span>
+                      {p.originalPrice > p.ourPrice && (
                         <span className="font-inter text-xs text-white/25 line-through">
-                          ${fmt(p.originalPrice)}
+                          {money(p.originalPrice, p.currency)}
                         </span>
                       )}
                     </div>
@@ -274,7 +275,7 @@ export default function HomePage() {
         {/* ── BRAND MARQUEE ── */}
         <section className="py-20 border-t border-white/8 overflow-hidden">
           <p className="font-inter text-[9px] tracking-[0.5em] text-white/15 text-center uppercase mb-10">
-            Brands We Carry
+            Explore Designer Style
           </p>
           <div className="ticker-track-slow">
             {[0, 1].map(i => (
@@ -308,33 +309,7 @@ export default function HomePage() {
           </Link>
         </section>
 
-        {/* ── FOOTER ── */}
-        <footer className="border-t border-white/8 py-14 px-8">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="font-playfair text-2xl text-white tracking-wide">Dirty Apple</p>
-            <div className="flex flex-wrap justify-center gap-6 md:gap-10">
-              {[
-                { label: 'Shop',        href: '/shop' },
-                { label: 'Bags',        href: '/shop?category=bags' },
-                { label: 'Shoes',       href: '/shop?category=shoes' },
-                { label: 'Clothing',    href: '/shop?category=clothing' },
-                { label: 'Accessories', href: '/shop?category=accessories' },
-                { label: 'Sale',        href: '/collections/sale' },
-              ].map(l => (
-                <Link
-                  key={l.label}
-                  href={l.href}
-                  className="font-inter text-[10px] tracking-[0.25em] text-white/30 hover:text-white transition-colors uppercase"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-            <p className="font-inter text-[10px] text-white/15">© 2026 Dirty Apple</p>
-          </div>
-        </footer>
-
-      </main>
+      </div>
     </>
   );
 }
