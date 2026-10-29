@@ -1,3 +1,5 @@
+> Historical design proposal. For implemented behavior and release gates, read [the production audit](docs/PRODUCTION_AUDIT.md). External offers currently use retailer links; no charge-then-affiliate redirect or automated retailer purchasing is supported.
+
 # Dirty Apple — Curated Luxury Resale Platform
 ## Full Architecture & Roadmap
 

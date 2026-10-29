@@ -1,190 +1,25 @@
-# Dirty Apple - Stripe Connect Integration Design
+# Stripe integration
 
-## Overview
+Current implementation reference: [deployment and direct-checkout gates](docs/DEPLOYMENT.md#direct-checkout).
 
-This document outlines the Stripe integration architecture for Dirty Apple, a marketplace/aggregator platform where customers pay Dirty Apple, and we handle fulfillment or redirect to retailers while earning a spread.
+External retailer listings use retailer links and never enter Dirty Apple Stripe checkout. Direct checkout is disabled by default (`DIRECT_CHECKOUT_ENABLED=false`). The historical charge-then-affiliate-redirect design is not implemented or supported.
 
----
+## Direct checkout contract
 
-## Architecture
+All cart and checkout requests require a random UUID `X-Session-Id`. `POST /api/checkout` also requires an `Idempotency-Key` UUID, a list of `{productId, quantity, size}` and customer shipping details. The server loads product prices from MongoDB and creates a durable pending order before requesting a Stripe PaymentIntent. Client prices and totals are ignored.
 
-### Two Payment Flows
+The result includes `clientSecret`, `paymentIntentId`, `paymentStatus`, `orderId`, `orderAccessToken`, `subtotal`, `shipping`, `tax` and `total`. Review changed server totals before confirming payment. Reuse the same idempotency key only for retries of the same request; changed items or customer details require a new explicit checkout attempt.
 
-#### 1. Affiliate Redirect Flow
-```
-Customer → Dirty Apple (payment) → Redirect to Retailer (affiliate link)
-                                    ↓
-                         Retailer tracks & pays commission
-```
-- Customer pays Dirty Apple full price
-- After payment, redirect customer to retailer's site with affiliate tracking
-- We keep the difference between our price and retailer's price as commission
-- **Use case**: When we don't fulfill the order directly
+`POST /api/checkout/confirm` accepts `{paymentIntentId, orderAccessToken}` with the same session header. It verifies the stored order, intent ID, order metadata, USD currency, exact amount received and successful payment before returning a sanitized order. A failed confirmation is retried without charging again. Closed checkouts return410; they do not automatically initiate another payment.
 
-#### 2. Direct Fulfillment Flow
-```
-Customer → Dirty Apple (payment) → We order from retailer → Ship to customer
-                                    ↓
-                         We pay retailer their wholesale price
-```
-- Customer pays Dirty Apple
-- We place order with retailer (API or manually)
-- We handle shipping/delivery (via Shipday/DoorDash)
-- We keep the spread (retail price - wholesale price - shipping)
+## Webhooks
 
----
+Use `/api/webhooks/stripe`; `/api/checkout/webhook` remains a compatibility alias. Both require the configured `STRIPE_WEBHOOK_SECRET` and preserve raw request bytes before JSON parsing. Implemented events handle PaymentIntent success/failure and charge refunds. Partial refunds update the refund amount; they do not incorrectly mark the whole payment refunded or erase shipment history.
 
-## Financial Split
+Customer order reads require both `X-Session-Id` and `X-Order-Token`. Order lists and fulfillment updates require administrator authentication. Client-provided paymentStatus changes are rejected.
 
-| Flow | Customer Pays | Affiliate Commission | Retailer Payout | Platform Revenue |
-|------|---------------|---------------------|-----------------|------------------|
-| Affiliate | $100 | $15 (to affiliate network) | $0 | $85 |
-| Direct | $100 | $0 | $60 (wholesale) | $40 - shipping |
+The frontend API proxy forwards session, order-token, idempotency and signature headers and preserves webhook body bytes.
 
----
+## Validation and limits
 
-## File Structure
-
-```
-dirty-apple/
-├── server/src/
-│   ├── lib/
-│   │   └── stripe.ts          # Server-side Stripe utilities
-│   └── routes/
-│       └── checkout.ts         # Checkout & webhook endpoints
-│
-├── frontend/src/
-│   ├── lib/
-│   │   └── stripe/
-│   │       └── client.ts      # Client-side Stripe config
-│   └── components/
-│       └── checkout/
-│           └── StripeCheckout.tsx  # React checkout component
-```
-
----
-
-## API Endpoints
-
-### POST /api/checkout
-Create payment intent with marketplace metadata.
-
-**Request:**
-```json
-{
-  "items": [{ "productId": "...", "price": 29.99, "originalPrice": 49.99, "retailerId": "..." }],
-  "customer": { "email": "..." },
-  "flowType": "direct_fulfillment" // or "affiliate_redirect"
-}
-```
-
-**Response:**
-```json
-{
-  "clientSecret": "pi_xxx_secret_xxx",
-  "paymentIntentId": "pi_xxx",
-  "total": 44.99,
-  "platformRevenue": 14.99,
-  "flowType": "direct_fulfillment"
-}
-```
-
-### POST /api/checkout/confirm
-Confirm payment and create order. Returns redirect URL for affiliate flow.
-
-### POST /api/checkout/webhook
-Handles Stripe webhooks for payment events.
-
-### POST /api/checkout/affiliate-link
-Generates affiliate redirect links.
-
----
-
-## Security Requirements
-
-### Environment Variables
-```bash
-# Server (Express on port 4000)
-STRIPE_SECRET_KEY=sk_live_xxx
-STRIPE_WEBHOOK_SECRET=whsec_xxx
-
-# Frontend (Next.js on port 3000)
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
-```
-
-### Security Measures
-1. **Never expose secret keys client-side** - Only publishable key in frontend
-2. **Validate amounts server-side** - Reject amounts < $0.50 or > $999,999.99
-3. **Idempotency keys** - Prevent duplicate charges
-4. **Webhook signature verification** - Verify all webhook events
-5. **Financial validation** - Ensure platform revenue = total - commissions - payouts
-
----
-
-## Stripe Connect (Future)
-
-For paying retailers directly (instead of affiliate model), you'd use Stripe Connect:
-
-### Express Accounts
-- Retailers onboard via Stripe Express
-- We can transfer funds to their connected account
-- They see a simplified Stripe dashboard
-
-### Implementation
-```typescript
-// Create connected account for retailer
-const { accountId, onboardingUrl } = await createConnectAccount(
-  retailer.email,
-  retailer.businessName
-);
-
-// Transfer to retailer after fulfillment
-await createTransferToRetailer(
-  retailerPayoutAmount,
-  connectedAccountId,
-  orderId
-);
-```
-
----
-
-## Limitations
-
-### Current Model Limitations
-
-1. **Refund complexity**: When refunding, must reverse affiliate commissions and retailer payouts proportionally
-2. **Chargeback risk**: As merchant of record, we bear fraud risk
-3. **Tax compliance**: Need to handle sales tax collection/remittance (Stripe Tax integration)
-4. **Platform fees**: Stripe fees (2.9% + $0.30) reduce margin
-5. **Payout timing**: Stripe payouts have 2-7 day rolling window
-
-### Stripe Limitations
-
-1. **No native affiliate tracking**: Need external affiliate network
-2. **Limited split payments**: Connect required for direct retailer payouts
-3. **Webhook retries**: Need idempotency (already implemented)
-4. **Currency**: Only USD in current setup (would need currency conversion for international)
-
----
-
-## Dependencies
-
-```bash
-# Server
-npm install stripe
-
-# Frontend  
-npm install @stripe/stripe-js @stripe/react-stripe-js
-```
-
----
-
-## Next Steps
-
-1. **Environment setup**: Configure Stripe keys in .env
-2. **Test webhooks**: Use Stripe CLI for local testing
-3. **Affiliate integration**: Connect to affiliate network (Impact, ShareASale)
-4. **Fulfillment integration**: Wire up Shipday/DoorDash for direct fulfillment
-5. **Tax calculation**: Enable Stripe Tax for automatic tax handling
-6. **Payout automation**: Set up Stripe Connect for retailer payouts
-
+Repository tests mock Stripe and never create real charges. Before enabling direct checkout, verify live test-mode webhook delivery, payment success/failure/retry/refund behavior and stock/fulfillment operations in staging. The existing simple shipping rule and zero-tax quotation still require operational tax/shipping implementation. No automated retailer purchasing, confirmation email service or affiliate commissions are connected.

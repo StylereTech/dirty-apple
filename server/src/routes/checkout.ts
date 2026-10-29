@@ -1,133 +1,106 @@
 import express from 'express';
-import Stripe from 'stripe';
 import { Order } from '../models/Order';
+import { requireSession, hashToken, UUID_PATTERN } from '../middleware/session';
+import { CommerceError, normalizeCustomer, normalizeItems, priceItems } from '../lib/commerce';
+import { getStripeServer } from '../lib/stripe';
+import { cancelPendingPayment, publicOrder, recordPayment } from '../lib/orders';
 
 const router = express.Router();
+router.use(requireSession);
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-  apiVersion: '2023-10-16' as any,
-});
+function fail(res: express.Response, error: any) {
+  if (error instanceof CommerceError) return res.status(error.status).json({ error: error.message });
+  if (error?.code === 11000) return res.status(409).json({ error: 'Checkout is already being created; retry with the same idempotency key' });
+  console.error('Checkout failed:', error?.name || 'Error');
+  return res.status(503).json({ error: 'Checkout is temporarily unavailable. Retry with the same checkout request.' });
+}
 
-// POST /api/checkout - Create Stripe checkout session
+// Pending orders are persisted before Stripe is called. The browser cannot set prices.
 router.post('/', async (req, res) => {
-  const { items, customer } = req.body;
-
-  if (!items || items.length === 0) {
-    return res.status(400).json({ error: 'Cart is empty' });
+  if (process.env.DIRECT_CHECKOUT_ENABLED !== 'true') {
+    return res.status(503).json({ error: 'Direct checkout is not available. Retailer listings can be purchased on the retailer website.' });
   }
-
+  if (!process.env.STRIPE_WEBHOOK_SECRET?.startsWith('whsec_') || /placeholder|your_webhook/i.test(process.env.STRIPE_WEBHOOK_SECRET)) {
+    return res.status(503).json({ error: 'Checkout is not configured' });
+  }
   try {
-    const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-    const shipping = subtotal > 500 ? 0 : 15;
-    const total = subtotal + shipping;
-
-    // Create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(total * 100),
-      currency: 'usd',
-      automatic_payment_methods: { enabled: true },
-      metadata: {
-        customerEmail: customer?.email || '',
-        customerName: `${customer?.firstName || ''} ${customer?.lastName || ''}`.trim(),
-        itemCount: String(items.length),
-      },
-    });
-
+    const idempotencyKey = req.get('idempotency-key');
+    if (!idempotencyKey || !UUID_PATTERN.test(idempotencyKey)) throw new CommerceError('A valid Idempotency-Key is required');
+    const items = normalizeItems(req.body.items);
+    const customer = normalizeCustomer(req.body.customer);
+    const requestDigest = hashToken(JSON.stringify({ items, customer }));
+    const checkoutKeyHash = hashToken(`${res.locals.sessionHash}:${idempotencyKey}`);
+    const stripe = getStripeServer();
+    let order = await Order.findOne({ checkoutKeyHash }).select('+requestDigest');
+    if (order && order.requestDigest !== requestDigest) {
+      throw new CommerceError('Checkout details changed. Start a new checkout request.', 409);
+    }
+    if (!order) {
+      const quote = await priceItems(items);
+      order = new Order({
+        ...quote, customer, sessionHash: res.locals.sessionHash,
+        accessTokenHash: hashToken(idempotencyKey), checkoutKeyHash, requestDigest,
+        paymentStatus: 'pending', fulfillmentStatus: 'pending',
+      });
+      await order.save();
+    }
+    if (order.paymentStatus === 'refunded' || order.fulfillmentStatus === 'cancelled') {
+      throw new CommerceError('This checkout is closed. Start a new checkout.', 410);
+    }
+    const existingIntent = order.stripePaymentId ? await stripe.paymentIntents.retrieve(order.stripePaymentId) : null;
+    if (existingIntent?.status === 'canceled') throw new CommerceError('This checkout is closed. Start a new checkout.', 410);
+    if (!existingIntent || ['requires_payment_method', 'requires_confirmation', 'requires_action'].includes(existingIntent.status)) {
+      // Retrying an unpaid quote must not revive a delisted/demo item or an obsolete price.
+      const current = await priceItems(items);
+      if (Math.round(current.total * 100) !== Math.round(order.total * 100)
+          || current.items.some((item, index) => Math.round(item.price * 100) !== Math.round(order!.items[index]?.price * 100))) {
+        throw new CommerceError('Inventory or prices changed. Review your cart before starting a new checkout.', 409);
+      }
+    }
+    // Processing/paid intents retain their immutable order snapshot; never replace them.
+    const paymentIntent = existingIntent || await stripe.paymentIntents.create({
+        amount: Math.round(order.total * 100), currency: 'usd',
+        payment_method_types: ['card'],
+        metadata: { orderId: String(order._id) },
+      }, { idempotencyKey: `order-${order._id}` });
+    if (!order.stripePaymentId) {
+      order.stripePaymentId = paymentIntent.id;
+      await order.save();
+    }
+    // An administrator can close a pending order while Stripe creation is in flight.
+    const latest = await Order.findById(order._id);
+    if (!latest) throw new CommerceError('Order is unavailable', 409);
+    if (latest.fulfillmentStatus === 'cancelled' || latest.paymentStatus === 'refunded') {
+      await cancelPendingPayment(latest, paymentIntent);
+      throw new CommerceError('This checkout is closed. Start a new checkout.', 410);
+    }
     res.json({
-      clientSecret: paymentIntent.client_secret,
-      subtotal,
-      shipping,
-      total,
+      clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id,
+      orderId: String(order._id), orderAccessToken: idempotencyKey,
+      paymentStatus: paymentIntent.status,
+      subtotal: order.subtotal, shipping: order.shipping, tax: order.tax, total: order.total,
     });
-  } catch (error: any) {
-    console.error('Stripe error:', error);
-    res.status(500).json({ error: error.message || 'Failed to create payment' });
-  }
+  } catch (error) { fail(res, error); }
 });
 
-// POST /api/checkout/confirm - Confirm payment and create order
+// Safe to retry: confirms only the immutable stored order belonging to this session/token.
 router.post('/confirm', async (req, res) => {
-  const { paymentIntentId, items, customer } = req.body;
-
   try {
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-    if (paymentIntent.status !== 'succeeded') {
-      return res.status(400).json({ error: 'Payment not confirmed' });
+    const { paymentIntentId, orderAccessToken } = req.body;
+    if (typeof paymentIntentId !== 'string' || !/^pi_[A-Za-z0-9]+$/.test(paymentIntentId)
+        || typeof orderAccessToken !== 'string' || !UUID_PATTERN.test(orderAccessToken)) {
+      throw new CommerceError('Payment and order access token are required');
     }
-
-    const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
-    const shipping = subtotal > 500 ? 0 : 15;
-    const total = subtotal + shipping;
-
-    const order = new Order({
-      items: items.map((item: any) => ({
-        product: item.productId,
-        quantity: item.quantity,
-        price: item.price,
-        originalPrice: item.originalPrice || item.price,
-        name: item.name,
-        brand: item.brand,
-        image: item.image,
-        size: item.size,
-        spread: (item.price - (item.originalPrice || item.price)) * item.quantity,
-      })),
-      customer: {
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        email: customer.email,
-        phone: customer.phone,
-        address: {
-          street: customer.address,
-          city: customer.city,
-          state: customer.state,
-          zip: customer.zip,
-          country: customer.country || 'US',
-        },
-      },
-      subtotal,
-      shipping,
-      tax: 0,
-      total,
-      stripePaymentId: paymentIntentId,
-      paymentStatus: 'paid',
-      fulfillmentStatus: 'pending',
+    const order = await Order.findOne({
+      stripePaymentId: paymentIntentId, sessionHash: res.locals.sessionHash,
+      accessTokenHash: hashToken(orderAccessToken),
     });
-
-    await order.save();
-    res.status(201).json(order);
-  } catch (error: any) {
-    console.error('Order creation error:', error);
-    res.status(500).json({ error: error.message || 'Failed to create order' });
-  }
-});
-
-// POST /api/checkout/webhook - Stripe webhook
-router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'] as string;
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  try {
-    let event: Stripe.Event;
-    if (endpointSecret && sig) {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-    } else {
-      event = req.body as Stripe.Event;
-    }
-
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        console.log('Payment succeeded:', (event.data.object as any).id);
-        break;
-      case 'payment_intent.payment_failed':
-        console.log('Payment failed:', (event.data.object as any).id);
-        break;
-    }
-
-    res.json({ received: true });
-  } catch (err: any) {
-    res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    const paymentIntent = await getStripeServer().paymentIntents.retrieve(paymentIntentId);
+    const confirmed = await recordPayment(order, paymentIntent);
+    if (confirmed.paymentStatus !== 'paid') return res.status(409).json({ error: 'This order is no longer awaiting payment confirmation' });
+    res.json(publicOrder(confirmed));
+  } catch (error) { fail(res, error); }
 });
 
 export default router;

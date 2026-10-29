@@ -12,7 +12,7 @@ const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '
 let stripePromise: Promise<Stripe | null> | null = null;
 
 export const getStripe = (): Promise<Stripe | null> => {
-  if (!stripePublishableKey) {
+  if (!/^pk_(test|live)_[A-Za-z0-9]+$/.test(stripePublishableKey) || /placeholder|your_/i.test(stripePublishableKey)) {
     console.warn('Stripe publishable key not configured');
     return Promise.resolve(null);
   }

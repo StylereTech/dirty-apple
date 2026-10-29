@@ -1,6 +1,6 @@
-import Image from 'next/image';
-
 export default function About() {
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+  const hasSupportEmail = !!supportEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail);
   return (
     <div className="min-h-screen">
       <div className="bg-black text-white py-24 text-center px-4">
@@ -14,18 +14,18 @@ export default function About() {
         <section className="mb-20">
           <h2 className="font-playfair text-3xl mb-6">Our Story</h2>
           <p className="font-inter text-gray font-light leading-relaxed mb-6">
-            Dirty Apple was born from a simple observation: luxury fashion retains its elegance and craftsmanship, 
-            but its prices often don't reflect the true value. We created a platform that bridges the gap between 
+            Dirty Apple was born from a simple observation: luxury fashion retains its elegance and craftsmanship,
+            but its prices often don't reflect the true value. We created a platform that bridges the gap between
             discerning fashion enthusiasts and the world's most coveted brands.
           </p>
           <p className="font-inter text-gray font-light leading-relaxed">
-            We believe that exceptional quality and timeless design should be accessible. Our team meticulously curates 
-            each piece from authorized retailers and trusted resellers, ensuring authenticity while uncovering the 
-            best possible prices.
+            We believe that exceptional quality and timeless design should be accessible. Each retailer listing identifies its source
+            and links to the seller, so you can compare the product details, current price and terms
+            before you purchase.
           </p>
         </section>
 
-        <section className="mb-20">
+        <section id="how-it-works" className="mb-20 scroll-mt-24">
           <h2 className="font-playfair text-3xl mb-12 text-center">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className="text-center">
@@ -36,7 +36,7 @@ export default function About() {
               </div>
               <h3 className="font-playfair text-xl mb-3">1. We Search</h3>
               <p className="font-inter text-gray font-light">
-                Our algorithms scan hundreds of luxury retailers daily to find the best prices on authenticated items.
+                Explore sale listings from fashion retailers and compare brands, categories and prices in one place.
               </p>
             </div>
             <div className="text-center">
@@ -47,7 +47,7 @@ export default function About() {
               </div>
               <h3 className="font-playfair text-xl mb-3">2. We Verify</h3>
               <p className="font-inter text-gray font-light">
-                Every item undergoes rigorous authentication by our expert team before listing.
+                We check listing details against source data. Visit the retailer to confirm the current price, size and availability.
               </p>
             </div>
             <div className="text-center">
@@ -58,47 +58,47 @@ export default function About() {
               </div>
               <h3 className="font-playfair text-xl mb-3">3. You Save</h3>
               <p className="font-inter text-gray font-light">
-                Get luxury pieces at up to 40% off retail prices, delivered directly to your door.
+                Discover marked-down pieces and complete retailer-listed purchases on the retailer’s website.
               </p>
             </div>
           </div>
         </section>
 
-        <section className="mb-20">
+        <section id="shipping" className="mb-20 scroll-mt-24">
           <h2 className="font-playfair text-3xl mb-6">Our Promise</h2>
           <ul className="space-y-4 font-inter text-gray font-light">
             <li className="flex items-start gap-3">
               <span className="text-black text-xl">✓</span>
-              <span>100% authentic luxury items from authorized retailers</span>
+              <span>Retailer sources and product links shown on external listings</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-black text-xl">✓</span>
-              <span>Price transparency - no hidden fees or surprise charges</span>
+              <span>Reference and sale prices displayed together for discounted items</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-black text-xl">✓</span>
-              <span>Free shipping on orders over $500</span>
+              <span>Shipping and delivery terms provided by the retailer</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-black text-xl">✓</span>
-              <span>30-day returns on unworn items with tags attached</span>
+              <span>Returns follow the retailer’s policy, including final-sale restrictions</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-black text-xl">✓</span>
-              <span>Dedicated customer support for a seamless experience</span>
+              <span>Current price and stock confirmed at the retailer before purchase</span>
             </li>
           </ul>
         </section>
 
-        <section>
+        <section id="contact" className="scroll-mt-24">
           <h2 className="font-playfair text-3xl mb-6">Contact Us</h2>
           <p className="font-inter text-gray font-light mb-4">
             Have questions? We'd love to hear from you.
           </p>
           <div className="font-inter">
-            <p className="mb-2">Email: hello@dirtyapple.com</p>
-            <p className="mb-2">Phone: +1 (888) 555-LUXE</p>
-            <p>Hours: Monday - Friday, 9am - 6pm EST</p>
+            <p className="mb-2">Email: {hasSupportEmail ? <a href={`mailto:${supportEmail}`} className="underline">{supportEmail}</a> : 'Support email is currently unavailable.'}</p>
+            <p className="mb-2">Phone: Phone support is currently unavailable.</p>
+            <p>For retailer purchases, use the support details in your order confirmation.</p>
           </div>
         </section>
       </div>

@@ -4,15 +4,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
 import FilterSidebar from '@/components/FilterSidebar';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'https://dirty-apple-api-production.up.railway.app';
-
-interface Product {
-  _id: string; name: string; slug: string; brand: string; category: string;
-  originalPrice: number; ourPrice: number; discount: number; images: string[];
-  sizes: { size: string; available: boolean }[]; retailerSource: string;
-  inStock: boolean; featured: boolean;
-}
+import LoadError from '@/components/LoadError';
+import { apiRequest, errorMessage } from '@/lib/api';
+import { Product, ProductPage } from '@/lib/catalog';
 
 function ShopInner() {
   const searchParams = useSearchParams();
@@ -31,6 +25,11 @@ function ShopInner() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileFilters, setMobileFilters] = useState(false);
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  const featured = searchParams.get('featured') === 'true';
+  const gender = searchParams.get('gender') || '';
+  const onSale = searchParams.get('onSale') === 'true';
 
   // Sync URL params AFTER hydration — useState initializers run before searchParams are available
   useEffect(() => {
@@ -38,43 +37,39 @@ function ShopInner() {
     const brand = searchParams.get('brand') || '';
     const search = searchParams.get('search') || '';
     setSelectedCategory(cat);
-    if (brand) setSelectedBrands([brand]);
-    if (search) setSearchQuery(search);
+    setSelectedBrands(brand ? brand.split(',').filter(Boolean) : []);
+    setSearchQuery(search);
+    setPage(1);
     setReady(true);
   }, [searchParams]);
 
   useEffect(() => {
     if (!ready) return;
-    fetchProducts();
-  }, [selectedBrands, selectedCategory, priceRange, minDiscount, sortBy, page, searchQuery, ready]);
-
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (selectedBrands.length) params.append('brand', selectedBrands.join(','));
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (priceRange[0] > 0) params.append('priceMin', priceRange[0].toString());
-      if (priceRange[1] < 10000) params.append('priceMax', priceRange[1].toString());
-      if (minDiscount > 0) params.append('minDiscount', minDiscount.toString());
-      if (searchQuery) params.append('search', searchQuery);
-      params.append('sort', sortBy);
-      params.append('page', page.toString());
-      params.append('limit', '12');
-
-      const res = await fetch(`${API}/api/products?${params.toString()}`);
-      const data = await res.json();
-      setProducts(data.products || []);
-      setTotal(data.total || 0);
-      setTotalPages(data.totalPages || 1);
-      if (data.brands) setBrands(data.brands);
-      if (data.categories) setCategories(data.categories);
-    } catch (error) {
-      console.error('Failed to fetch products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const controller = new AbortController();
+    setLoading(true); setError('');
+    const params = new URLSearchParams({ sort: sortBy, page: String(page), limit: '12', inStock: 'true' });
+    if (selectedBrands.length) params.set('brand', selectedBrands.join(','));
+    if (selectedCategory) params.set('category', selectedCategory);
+    if (priceRange[0] > 0) params.set('priceMin', String(priceRange[0]));
+    if (priceRange[1] < 10000) params.set('priceMax', String(priceRange[1]));
+    if (minDiscount > 0) params.set('minDiscount', String(minDiscount));
+    if (searchQuery) params.set('search', searchQuery);
+    if (featured) params.set('featured', 'true');
+    if (gender) params.set('gender', gender);
+    if (onSale) params.set('onSale', 'true');
+    const timer = window.setTimeout(() => {
+      apiRequest<ProductPage>(`/products?${params}`, { signal: controller.signal })
+        .then(data => {
+          if (controller.signal.aborted) return;
+          setProducts(data.products); setTotal(data.total);
+          setTotalPages(Math.max(1, data.totalPages));
+          setBrands(data.brands || []); setCategories(data.categories || []);
+        })
+        .catch(err => { if (!controller.signal.aborted) { setError(errorMessage(err)); setProducts([]); } })
+        .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    }, 200);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [selectedBrands, selectedCategory, priceRange, minDiscount, sortBy, page, searchQuery, ready, featured, gender, onSale, retry]);
 
   return (
     <div className="min-h-screen pt-20">
@@ -85,12 +80,13 @@ function ShopInner() {
             {selectedCategory ? selectedCategory.toUpperCase() : 'ALL PRODUCTS'}
           </p>
           <h1 className="font-playfair text-3xl md:text-5xl">
-            {selectedCategory || (selectedBrands.length === 1 ? selectedBrands[0] : 'Shop All')}
+            {selectedCategory || (selectedBrands.length === 1 ? selectedBrands[0] : featured ? 'Featured' : gender ? `${gender[0].toUpperCase()}${gender.slice(1)}` : 'Shop All')}
           </h1>
           {/* Search bar */}
           <div className="mt-6 max-w-md">
             <input
-              type="text"
+              type="search"
+              aria-label="Search products"
               placeholder="Search products..."
               value={searchQuery}
               onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
@@ -113,8 +109,8 @@ function ShopInner() {
           {/* Sidebar */}
           <div className={`${mobileFilters ? 'block' : 'hidden'} lg:block`}>
             <FilterSidebar
-              brands={brands.length ? brands : ['Gucci','Prada','Saint Laurent','Balenciaga','Bottega Veneta','Burberry','Versace','Off-White','Celine','Dior','Loewe','Valentino']}
-              categories={categories.length ? categories : ['Bags','Shoes','Clothing','Accessories']}
+              brands={brands}
+              categories={categories}
               selectedBrands={selectedBrands}
               selectedCategory={selectedCategory}
               priceRange={priceRange}
@@ -123,7 +119,7 @@ function ShopInner() {
               onCategoryChange={(c) => { setSelectedCategory(c); setPage(1); }}
               onPriceChange={(r) => { setPriceRange(r); setPage(1); }}
               onDiscountChange={(d) => { setMinDiscount(d); setPage(1); }}
-              onClear={() => { setSelectedBrands([]); setSelectedCategory(''); setPriceRange([0,10000]); setMinDiscount(0); setPage(1); }}
+              onClear={() => { setSelectedBrands([]); setSelectedCategory(''); setPriceRange([0,10000]); setMinDiscount(0); setSearchQuery(''); setPage(1); }}
             />
           </div>
 
@@ -131,9 +127,10 @@ function ShopInner() {
           <div className="flex-1">
             <div className="flex justify-between items-center mb-6">
               <p className="text-gray-500 font-inter text-sm">
-                {loading ? 'Loading...' : `${total} product${total !== 1 ? 's' : ''}`}
+                {loading ? 'Loading...' : error ? 'Products unavailable' : `${total} product${total !== 1 ? 's' : ''}`}
               </p>
               <select
+                aria-label="Sort products"
                 value={sortBy}
                 onChange={e => { setSortBy(e.target.value); setPage(1); }}
                 className="border border-gray-300 px-4 py-2 font-inter text-xs tracking-wider focus:outline-none focus:border-black bg-white"
@@ -157,7 +154,7 @@ function ShopInner() {
                   </div>
                 ))}
               </div>
-            ) : products.length === 0 ? (
+            ) : error ? <LoadError message={error} onRetry={() => setRetry(r => r + 1)} /> : products.length === 0 ? (
               <div className="text-center py-20">
                 <p className="font-playfair text-2xl mb-3">No products found</p>
                 <p className="text-gray-500 font-inter text-sm">Try adjusting your filters</p>
@@ -169,7 +166,7 @@ function ShopInner() {
             )}
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {!loading && !error && totalPages > 1 && (
               <div className="flex justify-center items-center gap-4 mt-12">
                 <button
                   onClick={() => setPage(p => Math.max(1, p - 1))}

@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { randomBytes } from 'node:crypto';
 
 export interface IOrder extends Document {
   orderNumber: string;
@@ -34,6 +35,11 @@ export interface IOrder extends Document {
   profit: number;
   stripePaymentId: string;
   stripeSessionId?: string;
+  sessionHash?: string;
+  accessTokenHash?: string;
+  checkoutKeyHash?: string;
+  requestDigest?: string;
+  refundedAmount: number;
   paymentStatus: 'pending' | 'paid' | 'refunded' | 'failed';
   fulfillmentStatus: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   sourceOrders: Array<{
@@ -49,7 +55,10 @@ export interface IOrder extends Document {
 }
 
 const OrderSchema = new Schema<IOrder>({
-  orderNumber: { type: String, required: true, unique: true },
+  orderNumber: {
+    type: String, required: true, unique: true,
+    default: () => `DA-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${randomBytes(6).toString('hex').toUpperCase()}`,
+  },
   items: [{
     product: { type: Schema.Types.ObjectId, ref: 'Product' },
     quantity: { type: Number, required: true },
@@ -82,6 +91,11 @@ const OrderSchema = new Schema<IOrder>({
   profit: { type: Number, default: 0 },
   stripePaymentId: { type: String },
   stripeSessionId: { type: String },
+  sessionHash: { type: String, select: false },
+  accessTokenHash: { type: String, select: false },
+  checkoutKeyHash: { type: String, select: false },
+  requestDigest: { type: String, select: false },
+  refundedAmount: { type: Number, default: 0, min: 0 },
   paymentStatus: { type: String, enum: ['pending', 'paid', 'refunded', 'failed'], default: 'pending' },
   fulfillmentStatus: { type: String, enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
   sourceOrders: [{
@@ -94,20 +108,10 @@ const OrderSchema = new Schema<IOrder>({
   notes: { type: String },
 }, { timestamps: true });
 
-OrderSchema.index({ orderNumber: 1 });
+OrderSchema.index({ stripePaymentId: 1 }, { unique: true, partialFilterExpression: { stripePaymentId: { $type: 'string' } } });
+OrderSchema.index({ checkoutKeyHash: 1 }, { unique: true, partialFilterExpression: { checkoutKeyHash: { $type: 'string' } } });
 OrderSchema.index({ 'customer.email': 1 });
 OrderSchema.index({ paymentStatus: 1 });
 OrderSchema.index({ createdAt: -1 });
-
-// Generate order number before save
-OrderSchema.pre('save', function(next) {
-  if (!this.orderNumber) {
-    const date = new Date();
-    const dateStr = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
-    const rand = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    this.orderNumber = `DA-${dateStr}-${rand}`;
-  }
-  next();
-});
 
 export const Order = mongoose.model<IOrder>('Order', OrderSchema);

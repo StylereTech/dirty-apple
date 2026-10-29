@@ -16,6 +16,10 @@ interface FilterSidebarProps {
   onClear: () => void;
 }
 
+function FilterSection({ title, expanded, onToggle, children }: { title: string; expanded: boolean; onToggle: () => void; children: React.ReactNode }) {
+  return <div className="border-b border-gray-200 pb-4 mb-4"><button onClick={onToggle} aria-expanded={expanded} className="flex items-center justify-between w-full font-inter text-xs tracking-[0.2em] mb-3 text-gray-600 hover:text-black">{title}<span className="text-lg leading-none">{expanded ? '−' : '+'}</span></button>{expanded && children}</div>;
+}
+
 export default function FilterSidebar({
   brands, categories, selectedBrands, selectedCategory,
   priceRange, minDiscount, onBrandChange, onCategoryChange,
@@ -24,15 +28,6 @@ export default function FilterSidebar({
   const [expanded, setExpanded] = useState({ category: true, brands: true, price: true, discount: true });
   const hasFilters = selectedBrands.length > 0 || selectedCategory || priceRange[0] > 0 || priceRange[1] < 10000 || minDiscount > 0;
 
-  const Section = ({ id, title, children }: { id: keyof typeof expanded; title: string; children: React.ReactNode }) => (
-    <div className="border-b border-gray-200 pb-4 mb-4">
-      <button onClick={() => setExpanded(e => ({ ...e, [id]: !e[id] }))} className="flex items-center justify-between w-full font-inter text-xs tracking-[0.2em] mb-3 text-gray-600 hover:text-black">
-        {title}
-        <span className="text-lg leading-none">{expanded[id] ? '−' : '+'}</span>
-      </button>
-      {expanded[id] && children}
-    </div>
-  );
 
   return (
     <div className="w-full lg:w-56 flex-shrink-0">
@@ -44,18 +39,18 @@ export default function FilterSidebar({
           )}
         </div>
 
-        <Section id="category" title="CATEGORY">
+        <FilterSection title="CATEGORY" expanded={expanded.category} onToggle={() => setExpanded(e => ({ ...e, category: !e.category }))}>
           <div className="space-y-2">
             {categories.map(c => (
-              <button key={c} onClick={() => onCategoryChange(selectedCategory === c ? '' : c)}
-                className={`block w-full text-left font-inter text-sm py-1 transition-colors ${selectedCategory === c ? 'text-black font-medium' : 'text-gray-500 hover:text-black'}`}>
+              <button key={c} onClick={() => onCategoryChange(selectedCategory.toLowerCase() === c.toLowerCase() ? '' : c)}
+                className={`block w-full text-left font-inter text-sm py-1 transition-colors ${selectedCategory.toLowerCase() === c.toLowerCase() ? 'text-black font-medium' : 'text-gray-500 hover:text-black'}`}>
                 {c}
               </button>
             ))}
           </div>
-        </Section>
+        </FilterSection>
 
-        <Section id="brands" title="BRAND">
+        <FilterSection title="BRAND" expanded={expanded.brands} onToggle={() => setExpanded(e => ({ ...e, brands: !e.brands }))}>
           <div className="space-y-1.5 max-h-52 overflow-y-auto">
             {brands.map(b => (
               <label key={b} className="flex items-center gap-2 cursor-pointer group">
@@ -65,25 +60,25 @@ export default function FilterSidebar({
               </label>
             ))}
           </div>
-        </Section>
+        </FilterSection>
 
-        <Section id="price" title="PRICE">
+        <FilterSection title="PRICE" expanded={expanded.price} onToggle={() => setExpanded(e => ({ ...e, price: !e.price }))}>
           <div className="space-y-3">
             <div className="flex gap-2">
-              <input type="number" placeholder="Min" value={priceRange[0] || ''} onChange={e => onPriceChange([Number(e.target.value) || 0, priceRange[1]])}
+              <input type="number" min="0" aria-label="Minimum price" placeholder="Min" value={priceRange[0] || ''} onChange={e => onPriceChange([Math.max(0, Number(e.target.value) || 0), priceRange[1]])}
                 className="w-full border border-gray-300 px-2 py-1.5 font-inter text-sm focus:outline-none focus:border-black" />
               <span className="self-center text-gray-400">–</span>
-              <input type="number" placeholder="Max" value={priceRange[1] === 10000 ? '' : priceRange[1]}
-                onChange={e => onPriceChange([priceRange[0], Number(e.target.value) || 10000])}
+              <input type="number" min="0" aria-label="Maximum price" placeholder="Max" value={priceRange[1] === 10000 ? '' : priceRange[1]}
+                onChange={e => onPriceChange([priceRange[0], e.target.value === '' ? 10000 : Math.max(0, Number(e.target.value))])}
                 className="w-full border border-gray-300 px-2 py-1.5 font-inter text-sm focus:outline-none focus:border-black" />
             </div>
-            <input type="range" min="0" max="10000" step="100" value={priceRange[1]}
+            <input aria-label="Maximum price slider" type="range" min="0" max="10000" step="100" value={priceRange[1]}
               onChange={e => onPriceChange([priceRange[0], Number(e.target.value)])}
               className="w-full accent-black" />
           </div>
-        </Section>
+        </FilterSection>
 
-        <Section id="discount" title="MIN DISCOUNT">
+        <FilterSection title="MIN DISCOUNT" expanded={expanded.discount} onToggle={() => setExpanded(e => ({ ...e, discount: !e.discount }))}>
           <div className="flex flex-wrap gap-2">
             {[0, 10, 20, 30].map(d => (
               <button key={d} onClick={() => onDiscountChange(minDiscount === d ? 0 : d)}
@@ -92,7 +87,7 @@ export default function FilterSidebar({
               </button>
             ))}
           </div>
-        </Section>
+        </FilterSection>
       </div>
     </div>
   );

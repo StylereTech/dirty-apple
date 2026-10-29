@@ -1,0 +1,98 @@
+{
+  "retailer": "mrporter",
+  "records": [
+    {
+      "externalProductId": "0400668268178",
+      "name": "Wool-Canvas Blouson Jacket - beige - 3",
+      "brand": "AURALEE",
+      "category": "clothing",
+      "originalPrice": 1220,
+      "salePrice": 732,
+      "currency": "USD",
+      "retailerUrl": "https://www.mrporter.com/en-us/mens/product/auralee/clothing/blousons/wool-canvas-blouson-jacket/46376663162971221",
+      "images": [
+        "https://www.mrporter.com/variants/images/46376663162971221/in/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/ou/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/fr/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/bk/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/cu/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/e2/w2000_q60.jpg"
+      ],
+      "inStock": true,
+      "observedAt": "2026-10-28T04:12:26.319708+00:00",
+      "sizes": [
+        {
+          "size": "3",
+          "available": true
+        }
+      ],
+      "colors": [
+        "beige"
+      ],
+      "variantId": "",
+      "gender": "men"
+    },
+    {
+      "externalProductId": "0400668267256",
+      "name": "Wool-Canvas Blouson Jacket - beige - 4",
+      "brand": "AURALEE",
+      "category": "clothing",
+      "originalPrice": 1220,
+      "salePrice": 732,
+      "currency": "USD",
+      "retailerUrl": "https://www.mrporter.com/en-us/mens/product/auralee/clothing/blousons/wool-canvas-blouson-jacket/46376663162971221",
+      "images": [
+        "https://www.mrporter.com/variants/images/46376663162971221/in/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/ou/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/fr/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/bk/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/cu/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/e2/w2000_q60.jpg"
+      ],
+      "inStock": false,
+      "observedAt": "2026-10-28T04:12:26.319708+00:00",
+      "sizes": [
+        {
+          "size": "4",
+          "available": false
+        }
+      ],
+      "colors": [
+        "beige"
+      ],
+      "variantId": "",
+      "gender": "men"
+    },
+    {
+      "externalProductId": "0400668268383",
+      "name": "Wool-Canvas Blouson Jacket - beige - 5",
+      "brand": "AURALEE",
+      "category": "clothing",
+      "originalPrice": 1220,
+      "salePrice": 732,
+      "currency": "USD",
+      "retailerUrl": "https://www.mrporter.com/en-us/mens/product/auralee/clothing/blousons/wool-canvas-blouson-jacket/46376663162971221",
+      "images": [
+        "https://www.mrporter.com/variants/images/46376663162971221/in/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/ou/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/fr/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/bk/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/cu/w2000_q60.jpg",
+        "https://www.mrporter.com/variants/images/46376663162971221/e2/w2000_q60.jpg"
+      ],
+      "inStock": false,
+      "observedAt": "2026-10-28T04:12:26.319708+00:00",
+      "sizes": [
+        {
+          "size": "5",
+          "available": false
+        }
+      ],
+      "colors": [
+        "beige"
+      ],
+      "variantId": "",
+      "gender": "men"
+    }
+  ]
+}

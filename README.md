@@ -1,138 +1,84 @@
-# Dirty Apple
+# dirtyApple
 
-Curated Luxury, Uncovered Prices - A luxury fashion resale aggregator platform.
+A fashion sale discovery storefront with a reviewed retailer-offer catalog, inventory administration, and a separately gated direct-checkout path.
 
-## Overview
+## Current status
 
-Dirty Apple is a luxury fashion aggregator that curates the finest items from top retailers worldwide, offering authenticated luxury at exceptional prices.
+The repository contains the storefront, Express API, MongoDB models, validated feed import, bounded public-page collector, and tests. Production requires a working API/database deployment and verified retailer data access. Import support does not mean an affiliate feed is connected or a retailer's complete catalog has been collected.
 
-## Tech Stack
+See [production audit](docs/PRODUCTION_AUDIT.md), [inventory operations](docs/INVENTORY.md), and [deployment guide](docs/DEPLOYMENT.md).
 
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
-- **Backend**: Express.js, TypeScript
-- **Database**: MongoDB with Mongoose
-- **Payments**: Stripe
+## Development
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- MongoDB (local or Atlas)
-- Stripe account (test mode)
-
-### Backend Setup
+Use Node.js 22.13+ (Node 22 in CI/containers) and MongoDB.
 
 ```bash
 cd server
-
-# Install dependencies
-npm install
-
-# Copy environment variables
-cp ../.env.example .env
-# Edit .env with your configuration
-
-# Run in development
+npm ci
+cp .env.example .env
+# Configure MONGODB_URI and a unique ADMIN_API_TOKEN of at least 32 characters.
 npm run dev
-
-# Build for production
-npm run build
-npm start
 ```
 
-### Frontend Setup
+In another terminal:
 
 ```bash
 cd frontend
-
-# Install dependencies
-npm install
-
-# Copy environment variables
-cp ../.env.example .env.local
-# Edit .env.local with your configuration
-
-# Run in development
+npm ci
+cp .env.example .env.local
 npm run dev
-
-# Build for production
-npm run build
-npm start
 ```
 
-### Seeding Data
+Visit `http://localhost:3000`, then `/admin` to organize inventory. The administrator token stays in tab memory. It is never a `NEXT_PUBLIC_*` variable.
+
+## Verification
 
 ```bash
-cd server
-npm run seed
+npm --prefix server test
+npm --prefix server run test:integration
+npm --prefix server run build
+npm --prefix frontend run test:run
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+npm --prefix server audit --audit-level=high
+npm --prefix frontend audit --audit-level=high
 ```
 
-## Project Structure
+The database integration test starts disposable local MongoDB through `mongodb-memory-server`; first execution downloads a MongoDB test binary. Tests do not use production database credentials or send Stripe charges.
 
-```
-dirty-apple/
-├── frontend/                 # Next.js frontend
-│   ├── src/
-│   │   ├── app/             # App router pages
-│   │   │   ├── shop/       # Shop page
-│   │   │   ├── product/    # Product detail
-│   │   │   ├── cart/       # Cart page
-│   │   │   ├── checkout/   # Checkout page
-│   │   │   └── about/      # About page
-│   │   └── components/     # React components
-│   └── package.json
-├── server/                   # Express backend
-│   ├── src/
-│   │   ├── models/         # Mongoose models
-│   │   ├── routes/        # API routes
-│   │   └── scrapers/      # Retailer scraper stubs
-│   └── package.json
-├── .env.example
-├── vercel.json
-└── Dockerfile
+## Inventory
+
+1. Obtain a retailer's approved product feed, or queue a bounded public collection in `/admin`.
+2. Map source columns to the [normalized offer contract](docs/INVENTORY.md#normalized-offer-contract).
+3. Validate and preview; import new offers as drafts.
+4. Review category, audience, source price, availability, imagery and source URL, then publish.
+5. Refresh source data regularly. External listings with stale verification, unavailable stock, or no active discount are excluded from public catalog endpoints.
+
+CLI preview (does not write to MongoDB):
+
+```bash
+npm --prefix server run inventory:import -- --retailer mrporter --file /absolute/path/offers.json
 ```
 
-## Environment Variables
+Add `--commit` only after reviewing the preview. It imports drafts and safely refreshes existing records, in batches of 500. This command requires `MONGODB_URI`.
 
-| Variable | Description |
-|----------|-------------|
-| `PORT` | Server port (default: 4000) |
-| `MONGODB_URI` | MongoDB connection string |
-| `STRIPE_SECRET_KEY` | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
-| `NEXT_PUBLIC_API_URL` | Backend API URL |
+## Purchases
 
-## Product Specs
-
-- [AI Bulk Inventory Upload Spec](./AI_BULK_INVENTORY_UPLOAD_SPEC.md)
-
-## Features
-
-- Browse luxury fashion by category, brand, and price
-- Advanced filtering and sorting
-- Full product details with size selection
-- Shopping cart with quantity management
-- Stripe checkout integration
-- Order tracking
+External retailer offers send customers to the retailer. Dirty Apple does not charge for those purchases. Direct checkout is disabled by default. Enable it only after the operational requirements in [deployment](docs/DEPLOYMENT.md#direct-checkout) are fulfilled.
 
 ## Deployment
 
-### Frontend (Vercel)
-
-Connect the repository to Vercel. The `vercel.json` configures the build settings.
-
-### Backend (Docker)
+- Frontend: Next.js 16, React 18, Tailwind CSS. Set server-side `API_URL` to the working API origin; `/api/*` is proxied without caching. Missing production configuration produces a clear 503.
+- Backend: Express, TypeScript, Mongoose and Stripe. Set `MONGODB_URI`, `APP_URL`/`CORS_ORIGINS` and `ADMIN_API_TOKEN`.
+- Railway and Vercel build settings use committed lockfiles.
 
 ```bash
-# Build the image
-docker build -t dirty-apple-server .
-
-# Run the container
-docker run -p 4000:4000 --env-file .env dirty-apple-server
+docker build -f Dockerfile.backend -t dirty-apple-server .
+docker run --env-file server/.env -p 4000:4000 dirty-apple-server
 ```
 
-## License
+The API starts only after MongoDB and required unique indexes are ready. `/api/health` reflects database readiness. See the deployment guide before applying changes to an existing database.
 
-MIT
+## Historical design documents
+
+`ARCHITECTURE.md` and `AI_BULK_INVENTORY_UPLOAD_SPEC.md` are planning documents. Implemented runtime behavior is described by the guides above. The older charge-then-affiliate-redirect flow is not supported.

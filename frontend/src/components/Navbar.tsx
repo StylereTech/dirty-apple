@@ -12,9 +12,20 @@ export default function Navbar() {
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown', close);
+    return () => { document.body.style.overflow = previous; window.removeEventListener('keydown', close); };
+  }, [menuOpen]);
 
   const transparent = isHome && !scrolled && !menuOpen;
 
@@ -34,6 +45,8 @@ export default function Navbar() {
             onClick={() => setMenuOpen(!menuOpen)}
             className={`lg:hidden transition-colors ${transparent ? 'text-white' : 'text-black'}`}
             aria-label="Menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {menuOpen
@@ -79,6 +92,7 @@ export default function Navbar() {
           <div className="flex items-center gap-5">
             <Link
               href="/shop"
+              aria-label="Search products"
               className={`transition-colors duration-300 ${transparent ? 'text-white/80 hover:text-white' : 'text-black/60 hover:text-black'}`}
             >
               <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,6 +101,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/cart"
+              aria-label="Shopping cart"
               className={`transition-colors duration-300 ${transparent ? 'text-white/80 hover:text-white' : 'text-black/60 hover:text-black'}`}
             >
               <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,8 +115,10 @@ export default function Navbar() {
 
       {/* Mobile full-screen menu */}
       <div
+        id="mobile-menu"
+        aria-hidden={!menuOpen}
         className={`fixed inset-0 z-40 bg-black transition-all duration-500 ${
-          menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          menuOpen ? 'visible opacity-100 pointer-events-auto' : 'invisible opacity-0 pointer-events-none'
         }`}
       >
         <div className="flex flex-col justify-center h-full px-10 gap-8 pt-16">

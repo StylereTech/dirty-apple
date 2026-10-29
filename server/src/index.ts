@@ -1,51 +1,31 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import mongoose from 'mongoose';
-import productRoutes from './routes/products';
-import cartRoutes from './routes/cart';
-import checkoutRoutes from './routes/checkout';
-import orderRoutes from './routes/orders';
-import scrapeRoutes from './routes/scrape';
-import webhookRoutes from './routes/webhooks';
+import app from './app';
+import { initializeDatabase } from './database';
+import { startScrapeWorker } from './inventory/worker';
 
-dotenv.config();
+export async function startServer() {
+  const port = Number(process.env.PORT || 4000);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid PORT');
+  await initializeDatabase();
+  const stopWorker = process.env.VERCEL === '1' || process.env.SCRAPE_WORKER_ENABLED === 'false' ? () => {} : startScrapeWorker();
+  const server = app.listen(port, () => console.log(`Server listening on port ${port}`));
+  const shutdown = () => {
+    stopWorker();
+    server.close(() => { void mongoose.disconnect().finally(() => process.exit(0)); });
+    setTimeout(() => process.exit(1), 10000).unref();
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
+  return server;
+}
 
-const app = express();
-const PORT = process.env.PORT || 4000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
-app.use('/api/products', productRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/checkout', checkoutRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/scrape', scrapeRoutes);
-app.use('/api/webhooks', webhookRoutes);
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-// Connect to MongoDB and start server
-const startServer = async () => {
-  try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/dirty-apple';
-    await mongoose.connect(mongoUri);
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.warn('MongoDB connection failed, running in mock mode:', error);
-  }
-
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+if (require.main === module && process.env.VERCEL !== '1') {
+  startServer().catch(async (error: Error) => {
+    console.error('Server startup failed:', error.name);
+    await mongoose.disconnect();
+    process.exitCode = 1;
   });
-};
-
-startServer();
+}
 
 export default app;
