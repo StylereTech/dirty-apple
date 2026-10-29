@@ -10,7 +10,23 @@ import scrapeRoutes from './routes/scrape';
 import inventoryRoutes from './routes/inventory';
 import inventoryCronRoutes from './routes/inventory-cron';
 import webhookRoutes, { stripeWebhookHandler } from './routes/webhooks';
-import { initializeDatabase, isDatabaseReady as databaseIsReady } from './database';
+import { initializeDatabase, isDatabaseReady as databaseIsReady, databaseUri } from './database';
+
+function databaseConnectionDiagnostic(): Record<string, string | number | boolean> {
+  try {
+    const uri = new URL(databaseUri());
+    return {
+      host: uri.hostname,
+      username: decodeURIComponent(uri.username),
+      database: uri.pathname.replace(/^\//, '').split('/')[0],
+      authSource: uri.searchParams.get('authSource') || '',
+      passwordPresent: Boolean(uri.password),
+      passwordLength: decodeURIComponent(uri.password).length,
+    };
+  } catch {
+    return { uriParseable: false };
+  }
+}
 
 function databaseErrorDiagnostic(error: unknown): Array<Record<string, string | number>> {
   const diagnostics: Array<Record<string, string | number>> = [];
@@ -58,7 +74,7 @@ export function createApp(options: { isDatabaseReady?: () => boolean; initialize
     app.use((req, res, next) => {
       // Leave the request stream untouched; Stripe signature verification needs raw bytes.
       void Promise.resolve().then(initialize).then(() => next(), error => {
-        console.error('Database initialization failed', databaseErrorDiagnostic(error));
+        console.error('Database initialization failed', databaseConnectionDiagnostic(), databaseErrorDiagnostic(error));
         res.setHeader('Cache-Control', 'no-store');
         res.setHeader('Retry-After', '5');
         if (req.path === '/api/health') {
