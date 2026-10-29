@@ -12,6 +12,25 @@ import inventoryCronRoutes from './routes/inventory-cron';
 import webhookRoutes, { stripeWebhookHandler } from './routes/webhooks';
 import { initializeDatabase, isDatabaseReady as databaseIsReady } from './database';
 
+function databaseErrorDiagnostic(error: unknown): Array<Record<string, string | number>> {
+  const diagnostics: Array<Record<string, string | number>> = [];
+  const pending: unknown[] = [error];
+  const seen = new Set<object>();
+  while (pending.length && diagnostics.length < 3) {
+    const current = pending.shift();
+    if (!current || typeof current !== 'object' || seen.has(current)) continue;
+    seen.add(current);
+    const record = current as Record<string, unknown>;
+    const diagnostic: Record<string, string | number> = {};
+    if (typeof record.name === 'string') diagnostic.name = record.name;
+    if (typeof record.code === 'string' || typeof record.code === 'number') diagnostic.code = record.code;
+    if (typeof record.codeName === 'string') diagnostic.codeName = record.codeName;
+    if (Object.keys(diagnostic).length) diagnostics.push(diagnostic);
+    pending.push(record.cause, record.error);
+  }
+  return diagnostics;
+}
+
 export function createApp(options: { isDatabaseReady?: () => boolean; initializeDatabase?: () => Promise<void> } = {}) {
   const app = express();
   const isDatabaseReady = options.isDatabaseReady || (() => mongoose.connection.readyState === 1);
@@ -38,7 +57,8 @@ export function createApp(options: { isDatabaseReady?: () => boolean; initialize
   if (initialize) {
     app.use((req, res, next) => {
       // Leave the request stream untouched; Stripe signature verification needs raw bytes.
-      void Promise.resolve().then(initialize).then(() => next(), () => {
+      void Promise.resolve().then(initialize).then(() => next(), error => {
+        console.error('Database initialization failed', databaseErrorDiagnostic(error));
         res.setHeader('Cache-Control', 'no-store');
         res.setHeader('Retry-After', '5');
         if (req.path === '/api/health') {
