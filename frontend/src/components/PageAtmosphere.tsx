@@ -1,12 +1,9 @@
 type PageAtmosphereProps = { image?: string; variant?: 'shop' | 'collection' | 'story' | 'checkout' };
-export default function PageAtmosphere({ image = '/cat-accessories.jpg', variant = 'shop' }: PageAtmosphereProps) {
+
+// Decorative artwork supplements the original editorial and product photography.
+export default function PageAtmosphere({ variant = 'shop' }: PageAtmosphereProps) {
+  const artwork = variant === 'shop' ? 'monochrome-couture-v1.png' : 'monochrome-atelier-v1.png';
   return <div className={`page-atmosphere atmosphere-${variant}`} aria-hidden="true">
-    <div className="atmosphere-grid" />
-    <div className="atmosphere-glow" />
-    <div className="atmosphere-orbit orbit-back" />
-    <div className="atmosphere-photo"><img src={image} alt="" loading="eager" /></div>
-    <div className="atmosphere-orbit orbit-front" />
-    <svg className="atmosphere-spark" viewBox="0 0 100 100" fill="none"><path d="M50 0v100M0 50h100M15 15l70 70M15 85l70-70" stroke="currentColor" strokeWidth="1.2" /><circle cx="50" cy="50" r="29" stroke="currentColor" strokeWidth=".6" /></svg>
-    <div className="atmosphere-point" />
+    <img className="atmosphere-artwork" src={`/artwork/${artwork}`} alt="" width={2172} height={724} loading="eager" />
   </div>;
 }
