@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import LoadError from '@/components/LoadError';
+import PageAtmosphere from '@/components/PageAtmosphere';
 import { cartRequest, errorMessage } from '@/lib/api';
 import { CartItem, CartData, money, shippingFor } from '@/lib/catalog';
 
@@ -49,8 +50,8 @@ export default function Checkout() {
   const hasUnavailable = items.some(item => item.unavailable);
 
   return (
-    <div className="min-h-screen pt-20">
-      <div className="bg-black text-white py-10 px-4 text-center">
+    <div className="expressive-commerce min-h-screen pt-20">
+      <div className="expressive-header commerce-header bg-black text-white py-10 px-4 text-center"><PageAtmosphere variant="checkout" image="/cat-bags.jpg" />
         <h1 className="font-playfair text-3xl md:text-4xl">Checkout</h1>
       </div>
 
@@ -66,7 +67,7 @@ export default function Checkout() {
               <CheckoutPayment items={items} subtotal={subtotal} onQuote={setQuote} />
             </div>
             <div className="lg:col-span-2">
-              <div className="bg-neutral-50 p-6 sticky top-24">
+              <div className="expressive-summary bg-neutral-50 p-6 sticky top-24">
                 <h2 className="font-inter text-xs tracking-[0.2em] text-gray-500 mb-6">ORDER SUMMARY</h2>
                 <div className="space-y-4 mb-6">
                   {items.map(item => (

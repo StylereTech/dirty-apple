@@ -33,14 +33,14 @@ export default function FilterSidebar({
     <div className="refined-filters w-full lg:w-56 flex-shrink-0">
       <div className="refined-filter-surface lg:sticky lg:top-28">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-inter text-xs tracking-[0.2em]">FILTERS</h2>
+          <h2 className="filter-title font-inter text-xs tracking-[0.2em]"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 17h16" stroke="currentColor" strokeWidth="1.3" /><circle cx="9" cy="7" r="3" fill="currentColor" /><circle cx="15" cy="17" r="3" fill="currentColor" /></svg>FILTERS</h2>
           {hasFilters && (
             <button onClick={onClear} className="text-xs text-gray-500 hover:text-black underline font-inter">Clear all</button>
           )}
         </div>
 
         <FilterSection title="CATEGORY" expanded={expanded.category} onToggle={() => setExpanded(e => ({ ...e, category: !e.category }))}>
-          <div className="space-y-2">
+          <div className="filter-category-options space-y-2">
             {categories.map(c => (
               <button key={c} aria-pressed={selectedCategory.toLowerCase() === c.toLowerCase()} onClick={() => onCategoryChange(selectedCategory.toLowerCase() === c.toLowerCase() ? '' : c)}
                 className={`block w-full text-left font-inter text-sm py-1 transition-colors ${selectedCategory.toLowerCase() === c.toLowerCase() ? 'text-black font-medium' : 'text-gray-500 hover:text-black'}`}>
@@ -63,7 +63,7 @@ export default function FilterSidebar({
         </FilterSection>
 
         <FilterSection title="PRICE" expanded={expanded.price} onToggle={() => setExpanded(e => ({ ...e, price: !e.price }))}>
-          <div className="space-y-3">
+          <div className="filter-price-controls space-y-3">
             <div className="flex gap-2">
               <input type="number" min="0" aria-label="Minimum price" placeholder="Min" value={priceRange[0] || ''} onChange={e => onPriceChange([Math.max(0, Number(e.target.value) || 0), priceRange[1]])}
                 className="w-full border border-gray-300 px-2 py-1.5 font-inter text-sm focus:outline-none focus:border-black" />
@@ -79,7 +79,7 @@ export default function FilterSidebar({
         </FilterSection>
 
         <FilterSection title="MIN DISCOUNT" expanded={expanded.discount} onToggle={() => setExpanded(e => ({ ...e, discount: !e.discount }))}>
-          <div className="flex flex-wrap gap-2">
+          <div className="filter-discounts flex flex-wrap gap-2">
             {[0, 10, 20, 30].map(d => (
               <button key={d} aria-pressed={minDiscount === d} onClick={() => onDiscountChange(minDiscount === d ? 0 : d)}
                 className={`px-3 py-1.5 border text-xs font-inter transition-colors ${minDiscount === d && d > 0 ? 'border-black bg-black text-white' : 'border-gray-300 hover:border-black text-gray-600'}`}>

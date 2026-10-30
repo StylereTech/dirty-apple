@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import LoadError from '@/components/LoadError';
+import PageAtmosphere from '@/components/PageAtmosphere';
 import { cartRequest, errorMessage } from '@/lib/api';
 import { CartItem, CartData, money, shippingFor } from '@/lib/catalog';
 
@@ -48,7 +49,7 @@ export default function Cart() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen pt-24 flex flex-col items-center justify-center px-4">
+      <div className="expressive-empty min-h-screen pt-24 flex flex-col items-center justify-center px-4">
         <h1 className="font-playfair text-3xl mb-3">Your Cart is Empty</h1>
         <p className="text-gray-500 font-inter text-sm mb-8">Discover luxury at uncovered prices</p>
         <Link href="/shop" className="bg-black text-white px-10 py-4 font-inter text-xs tracking-[0.2em] hover:bg-neutral-800 transition-colors">
@@ -59,8 +60,8 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen pt-20">
-      <div className="bg-black text-white py-10 px-4">
+    <div className="expressive-commerce min-h-screen pt-20">
+      <div className="expressive-header commerce-header bg-black text-white py-10 px-4"><PageAtmosphere variant="checkout" image="/cat-bags.jpg" />
         <div className="max-w-7xl mx-auto">
           <h1 className="font-playfair text-3xl md:text-4xl">Shopping Cart</h1>
           <p className="font-inter text-xs text-gray-500 mt-2">{items.length} item{items.length !== 1 ? 's' : ''}</p>
@@ -98,7 +99,7 @@ export default function Cart() {
           </div>
 
           <div className="lg:col-span-1">
-            <div className="bg-neutral-50 p-6 sticky top-24">
+            <div className="expressive-summary bg-neutral-50 p-6 sticky top-24">
               <h2 className="font-inter text-xs tracking-[0.2em] mb-6">ORDER SUMMARY</h2>
               <div className="space-y-3 font-inter text-sm">
                 <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>{money(subtotal)}</span></div>

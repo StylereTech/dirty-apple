@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './interaction-polish.css';
+import './expressive-ui.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 

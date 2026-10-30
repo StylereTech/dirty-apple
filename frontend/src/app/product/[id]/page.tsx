@@ -92,7 +92,7 @@ export default function ProductDetail() {
   const available = product.inStock !== false;
 
   return (
-    <div className="min-h-screen pt-24">
+    <div className="expressive-product min-h-screen pt-24">
       <div className="max-w-7xl mx-auto px-4">
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-gray-400 mb-8 font-inter">
           <Link href="/" className="hover:text-black">Home</Link><span>/</span><Link href="/shop" className="hover:text-black">Shop</Link><span>/</span>
@@ -100,7 +100,7 @@ export default function ProductDetail() {
         </nav>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="space-y-3">
-            <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
+            <div className="expressive-product-image relative aspect-[3/4] bg-neutral-100 overflow-hidden">
               {images.length ? <img src={images[selectedImage] || images[0]} alt={product.name} className="w-full h-full object-contain bg-white p-4" /> : <p className="h-full flex items-center justify-center text-sm text-gray-500">Image unavailable</p>}
             </div>
             {images.length > 1 && <div className="grid grid-cols-4 gap-2">{images.map((img, i) => <button key={img} aria-label={`View image ${i + 1}`} onClick={() => setSelectedImage(i)} className={`relative aspect-square overflow-hidden ${selectedImage === i ? 'ring-2 ring-black' : 'ring-1 ring-gray-200'}`}><img src={img} alt="" className="w-full h-full object-contain bg-white" /></button>)}</div>}

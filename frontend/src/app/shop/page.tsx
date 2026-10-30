@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
 import FilterSidebar from '@/components/FilterSidebar';
 import LoadError from '@/components/LoadError';
+import PageAtmosphere from '@/components/PageAtmosphere';
 import { apiRequest, errorMessage } from '@/lib/api';
 import { Product, ProductPage } from '@/lib/catalog';
 
@@ -74,7 +75,8 @@ function ShopInner() {
   return (
     <div className="refined-shop min-h-screen pt-20">
       {/* Header */}
-      <div className="bg-black text-white py-12 px-4">
+      <div className="expressive-header shop-header bg-black text-white py-12 px-4">
+        <PageAtmosphere image={selectedCategory === 'shoes' ? '/cat-shoes.jpg' : selectedCategory === 'clothing' ? '/cat-clothing.jpg' : selectedCategory === 'accessories' ? '/cat-accessories.jpg' : '/cat-bags.jpg'} />
         <div className="max-w-7xl mx-auto">
           <p className="font-inter text-xs tracking-[0.3em] text-gray-500 mb-2">
             {selectedCategory ? selectedCategory.toUpperCase() : 'ALL PRODUCTS'}
