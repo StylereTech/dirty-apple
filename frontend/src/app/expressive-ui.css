@@ -42,9 +42,6 @@
 .site-refresh .refined-tile:is(:hover,:focus-visible)::after { border-color:#ffffffb3; box-shadow:inset 0 0 0 5px #ababab1a; }
 .site-refresh .original-home section > div > .text-center > .font-inter { color:#b9b9b9; }
 .site-refresh .original-home footer { background: linear-gradient(140deg,#121212,#070707); }
-.site-refresh .original-home > section:last-of-type {
-  background: radial-gradient(ellipse at 90% 70%,#58585833,transparent 50%), radial-gradient(ellipse at 0% 0%,#cfcfcf20,transparent 55%);
-}
 .site-refresh > footer { background: linear-gradient(120deg,#141414,#090909); }
 .site-refresh > footer h3 { color: #ffffff; }
 .site-refresh > footer a { transition:color 200ms,text-shadow 200ms; }
