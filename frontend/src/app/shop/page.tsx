@@ -72,7 +72,7 @@ function ShopInner() {
   }, [selectedBrands, selectedCategory, priceRange, minDiscount, sortBy, page, searchQuery, ready, featured, gender, onSale, retry]);
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="refined-shop min-h-screen pt-20">
       {/* Header */}
       <div className="bg-black text-white py-12 px-4">
         <div className="max-w-7xl mx-auto">
@@ -83,8 +83,10 @@ function ShopInner() {
             {selectedCategory || (selectedBrands.length === 1 ? selectedBrands[0] : featured ? 'Featured' : gender ? `${gender[0].toUpperCase()}${gender.slice(1)}` : 'Shop All')}
           </h1>
           {/* Search bar */}
-          <div className="mt-6 max-w-md">
+          <div className="refined-search mt-6 max-w-md">
+            <svg className="refined-search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" strokeWidth="1.5" /><path d="m15.5 15.5 5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
             <input
+              id="product-search"
               type="search"
               aria-label="Search products"
               placeholder="Search products..."
@@ -100,14 +102,16 @@ function ShopInner() {
         {/* Mobile filter toggle */}
         <button
           onClick={() => setMobileFilters(!mobileFilters)}
-          className="lg:hidden w-full border border-gray-300 py-3 font-inter text-xs tracking-[0.2em] mb-6"
+          aria-expanded={mobileFilters}
+          aria-controls="product-filters"
+          className="refined-filter-toggle lg:hidden w-full border border-gray-300 py-3 font-inter text-xs tracking-[0.2em] mb-6"
         >
           {mobileFilters ? 'HIDE FILTERS' : 'SHOW FILTERS'}
         </button>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <div className={`${mobileFilters ? 'block' : 'hidden'} lg:block`}>
+          <div id="product-filters" className={`${mobileFilters ? 'block' : 'hidden'} lg:block`}>
             <FilterSidebar
               brands={brands}
               categories={categories}

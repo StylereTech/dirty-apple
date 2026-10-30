@@ -32,7 +32,9 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        aria-label="Main navigation"
+        data-transparent={transparent}
+        className={`refined-nav fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           transparent
             ? 'bg-transparent'
             : 'bg-white border-b border-gray-100'
@@ -66,7 +68,7 @@ export default function Navbar() {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`font-inter text-[11px] tracking-[0.18em] uppercase transition-colors duration-300 ${
+                className={`refined-nav-link font-inter text-[11px] tracking-[0.18em] uppercase transition-colors duration-300 ${
                   transparent
                     ? 'text-white/80 hover:text-white'
                     : 'text-black/60 hover:text-black'
@@ -91,9 +93,9 @@ export default function Navbar() {
           {/* Right icons */}
           <div className="flex items-center gap-5">
             <Link
-              href="/shop"
+              href="/shop#product-search"
               aria-label="Search products"
-              className={`transition-colors duration-300 ${transparent ? 'text-white/80 hover:text-white' : 'text-black/60 hover:text-black'}`}
+              className={`refined-nav-icon transition-colors duration-300 ${transparent ? 'text-white/80 hover:text-white' : 'text-black/60 hover:text-black'}`}
             >
               <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -102,7 +104,7 @@ export default function Navbar() {
             <Link
               href="/cart"
               aria-label="Shopping cart"
-              className={`transition-colors duration-300 ${transparent ? 'text-white/80 hover:text-white' : 'text-black/60 hover:text-black'}`}
+              className={`refined-nav-icon transition-colors duration-300 ${transparent ? 'text-white/80 hover:text-white' : 'text-black/60 hover:text-black'}`}
             >
               <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />

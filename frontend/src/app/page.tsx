@@ -68,7 +68,7 @@ export default function HomePage() {
         .hero-cta    { opacity: 0; animation: heroFade 1s ease 0.8s forwards; }
       `}</style>
 
-      <div className="bg-black min-h-screen">
+      <div className="original-home bg-black min-h-screen">
 
         {/* ── HERO ── */}
         <section className="relative h-screen w-full overflow-hidden">
@@ -90,13 +90,13 @@ export default function HomePage() {
             <div className="hero-cta flex flex-col sm:flex-row gap-3">
               <Link
                 href="/shop"
-                className="bg-white text-black px-12 py-4 font-inter text-[11px] tracking-[0.3em] hover:bg-gray-100 transition-colors uppercase"
+                className="refined-cta bg-white text-black px-12 py-4 font-inter text-[11px] tracking-[0.3em] hover:bg-gray-100 transition-colors uppercase"
               >
                 Shop Now
               </Link>
               <Link
                 href="/collections/sale"
-                className="border border-white/50 text-white px-12 py-4 font-inter text-[11px] tracking-[0.3em] hover:bg-white/10 transition-colors uppercase"
+                className="refined-cta border border-white/50 text-white px-12 py-4 font-inter text-[11px] tracking-[0.3em] hover:bg-white/10 transition-colors uppercase"
               >
                 View Deals
               </Link>
@@ -134,7 +134,7 @@ export default function HomePage() {
                 <Link
                   key={cat.slug}
                   href={`/shop?category=${cat.slug}`}
-                  className="group relative aspect-[3/4] overflow-hidden"
+                  className="refined-tile group relative aspect-[3/4] overflow-hidden"
                 >
                   <img
                     src={cat.image}
@@ -169,7 +169,7 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 
               {/* Women's */}
-              <Link href="/shop?gender=women" className="group relative overflow-hidden aspect-[3/4]">
+              <Link href="/shop?gender=women" className="refined-tile group relative overflow-hidden aspect-[3/4]">
                 <img
                   src="/editorial-collage.jpg"
                   alt="Women's Edit"
@@ -193,7 +193,7 @@ export default function HomePage() {
               </Link>
 
               {/* Men's */}
-              <Link href="/shop?gender=men" className="group relative overflow-hidden aspect-[3/4]">
+              <Link href="/shop?gender=men" className="refined-tile group relative overflow-hidden aspect-[3/4]">
                 <img
                   src="/editorial-mens.jpg"
                   alt="Men's Edit"
@@ -303,7 +303,7 @@ export default function HomePage() {
           </h2>
           <Link
             href="/shop"
-            className="inline-block bg-white text-black px-16 py-5 font-inter text-[11px] tracking-[0.35em] hover:bg-gray-100 transition-colors uppercase"
+            className="refined-cta inline-block bg-white text-black px-16 py-5 font-inter text-[11px] tracking-[0.35em] hover:bg-gray-100 transition-colors uppercase"
           >
             Shop the Collection
           </Link>

@@ -6,7 +6,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const imgSrc = product.images?.[0];
 
   return (
-    <Link href={href} className="group block">
+    <Link href={href} className="refined-product group block">
       <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100 mb-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {imgSrc ? <img

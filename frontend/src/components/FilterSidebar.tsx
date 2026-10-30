@@ -17,7 +17,7 @@ interface FilterSidebarProps {
 }
 
 function FilterSection({ title, expanded, onToggle, children }: { title: string; expanded: boolean; onToggle: () => void; children: React.ReactNode }) {
-  return <div className="border-b border-gray-200 pb-4 mb-4"><button onClick={onToggle} aria-expanded={expanded} className="flex items-center justify-between w-full font-inter text-xs tracking-[0.2em] mb-3 text-gray-600 hover:text-black">{title}<span className="text-lg leading-none">{expanded ? '−' : '+'}</span></button>{expanded && children}</div>;
+  return <div className="refined-filter-section border-b border-gray-200 pb-4 mb-4"><button onClick={onToggle} aria-expanded={expanded} className="flex items-center justify-between w-full font-inter text-xs tracking-[0.2em] mb-3 text-gray-600 hover:text-black">{title}<span className="text-lg leading-none">{expanded ? '−' : '+'}</span></button>{expanded && <div className="refined-filter-content">{children}</div>}</div>;
 }
 
 export default function FilterSidebar({
@@ -30,8 +30,8 @@ export default function FilterSidebar({
 
 
   return (
-    <div className="w-full lg:w-56 flex-shrink-0">
-      <div className="lg:sticky lg:top-28">
+    <div className="refined-filters w-full lg:w-56 flex-shrink-0">
+      <div className="refined-filter-surface lg:sticky lg:top-28">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-inter text-xs tracking-[0.2em]">FILTERS</h2>
           {hasFilters && (
@@ -42,7 +42,7 @@ export default function FilterSidebar({
         <FilterSection title="CATEGORY" expanded={expanded.category} onToggle={() => setExpanded(e => ({ ...e, category: !e.category }))}>
           <div className="space-y-2">
             {categories.map(c => (
-              <button key={c} onClick={() => onCategoryChange(selectedCategory.toLowerCase() === c.toLowerCase() ? '' : c)}
+              <button key={c} aria-pressed={selectedCategory.toLowerCase() === c.toLowerCase()} onClick={() => onCategoryChange(selectedCategory.toLowerCase() === c.toLowerCase() ? '' : c)}
                 className={`block w-full text-left font-inter text-sm py-1 transition-colors ${selectedCategory.toLowerCase() === c.toLowerCase() ? 'text-black font-medium' : 'text-gray-500 hover:text-black'}`}>
                 {c}
               </button>
@@ -81,7 +81,7 @@ export default function FilterSidebar({
         <FilterSection title="MIN DISCOUNT" expanded={expanded.discount} onToggle={() => setExpanded(e => ({ ...e, discount: !e.discount }))}>
           <div className="flex flex-wrap gap-2">
             {[0, 10, 20, 30].map(d => (
-              <button key={d} onClick={() => onDiscountChange(minDiscount === d ? 0 : d)}
+              <button key={d} aria-pressed={minDiscount === d} onClick={() => onDiscountChange(minDiscount === d ? 0 : d)}
                 className={`px-3 py-1.5 border text-xs font-inter transition-colors ${minDiscount === d && d > 0 ? 'border-black bg-black text-white' : 'border-gray-300 hover:border-black text-gray-600'}`}>
                 {d === 0 ? 'All' : `${d}%+`}
               </button>
