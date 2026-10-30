@@ -84,7 +84,7 @@ export default function HomePage() {
           <div className="chrome-orbit orbit-two" aria-hidden="true" />
           <div className="campaign-frame">
             <img src="/hero-bg.jpg" alt="Dirty Apple fashion campaign featuring three models in statement eyewear and tailored looks" fetchPriority="high" />
-            <div className="campaign-caption"><span>DIRTY APPLE — THE NEW PERSPECTIVE</span><span>01 / 03</span></div>
+            <div className="campaign-caption"><span>DIRTY APPLE — THE NEW PERSPECTIVE</span><span>CAMPAIGN 01</span></div>
           </div>
           <div className="floating-caption"><span className="caption-spark" aria-hidden="true">✳</span><div><span>Fashion is a feeling.</span><small>Find yours.</small></div></div>
           <div className="stage-index" aria-hidden="true">FORM / FEELING / FUTURE</div>

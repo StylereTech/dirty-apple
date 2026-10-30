@@ -38,6 +38,7 @@ export default function Navbar() {
   }, [menuOpen]);
 
   function closeMenu() {
+    dialog.current?.close();
     setMenuOpen(false);
     trigger.current?.focus();
   }
