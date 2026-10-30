@@ -264,3 +264,18 @@
   .site-refresh .refined-nav-link::before { transition:none; }
   .site-refresh .filter-discounts button:hover { transform:none; }
 }
+
+/* Match selected control contrast to the new palette. */
+.site-refresh .refined-filter-content .filter-discounts button[aria-pressed="true"] {
+  background:#d7f773; color:#283214; border-color:#b6d35f; box-shadow:0 3px 10px #aec54e33;
+}
+.site-refresh main .text-center.py-20 {
+  position:relative; border:1px solid #e6ddeb; border-radius:5px 30px 5px 30px;
+  background:radial-gradient(ellipse at 15% 0%,#e8ddf466,transparent 65%),radial-gradient(ellipse at 100% 100%,#e7efcf66,transparent 55%),#ffffff80;
+}
+.site-refresh main .text-center.py-20::before {
+  content:""; display:block; width:38px; height:38px; margin:0 auto 24px;
+  border:1px solid #b99ecc; border-radius:50%; background:linear-gradient(135deg,#fff,#d9c9e8,#f5f8e9);
+  box-shadow:9px 0 0 -1px #e5eccf,-9px 0 0 -1px #eee7f4;
+}
+.site-refresh main .text-center.py-20 > .font-playfair { color:#5b406b; font-style:italic; font-size:28px; }
