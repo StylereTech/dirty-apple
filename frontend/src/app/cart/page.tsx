@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import AtmosphereState from '@/components/AtmosphereState';
+
 import LoadError from '@/components/LoadError';
 import PageAtmosphere from '@/components/PageAtmosphere';
 import { cartRequest, errorMessage } from '@/lib/api';
@@ -43,19 +45,19 @@ export default function Cart() {
   const shipping = shippingFor(subtotal);
   const total = subtotal + shipping;
 
-  if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center font-inter text-gray-500">Loading...</div>;
+  if (loading) return <AtmosphereState><p role="status" className="font-inter text-gray-500">Loading...</p></AtmosphereState>;
 
-  if (error) return <div className="min-h-screen pt-32 px-4 max-w-3xl mx-auto"><h1 className="font-playfair text-3xl mb-6">Shopping Cart</h1><LoadError message={error} onRetry={() => setRetry(r => r + 1)} /></div>;
+  if (error) return <AtmosphereState><h1 className="font-playfair text-3xl mb-6">Shopping Cart</h1><LoadError message={error} onRetry={() => setRetry(r => r + 1)} /></AtmosphereState>;
 
   if (items.length === 0) {
     return (
-      <div className="expressive-empty min-h-screen pt-24 flex flex-col items-center justify-center px-4">
+      <AtmosphereState>
         <h1 className="font-playfair text-3xl mb-3">Your Cart is Empty</h1>
         <p className="text-gray-500 font-inter text-sm mb-8">Discover luxury at uncovered prices</p>
         <Link href="/shop" className="bg-black text-white px-10 py-4 font-inter text-xs tracking-[0.2em] hover:bg-neutral-800 transition-colors">
           SHOP NOW
         </Link>
-      </div>
+      </AtmosphereState>
     );
   }
 

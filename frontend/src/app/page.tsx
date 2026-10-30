@@ -125,7 +125,7 @@ export default function HomePage() {
         {/* ── SHOP BY CATEGORY ── */}
         <section className="px-4 md:px-8 py-24">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-14">
+            <div className="editorial-section-title text-center mb-14">
               <p className="font-inter text-[10px] tracking-[0.5em] text-white/30 uppercase mb-3">Explore</p>
               <h2 className="font-playfair text-4xl md:text-6xl text-white">The Edit</h2>
             </div>
@@ -294,7 +294,7 @@ export default function HomePage() {
         </section>
 
         {/* ── FOOTER CTA ── */}
-        <section className="py-36 px-4 text-center border-t border-white/8">
+        <section className="editorial-closing py-36 px-4 text-center border-t border-white/8">
           <p className="font-inter text-[10px] tracking-[0.5em] text-white/25 uppercase mb-5">
             Luxury For Less
           </p>

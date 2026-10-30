@@ -56,8 +56,8 @@ export default function Checkout() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-10">
-        {recovering ? <CheckoutPayment items={[]} subtotal={0} onQuote={setQuote} /> : loading ? <p className="text-center py-16">Loading your cart...</p> : error ? <LoadError message={error} onRetry={() => setRetry(r => r + 1)} /> : hasUnavailable ? <div role="alert" className="text-center py-16"><p className="mb-4">Some items are no longer available. Update your cart before checking out.</p><Link href="/cart" className="underline">Return to cart</Link></div> : items.length === 0 ? (
-          <div className="text-center py-16">
+        {recovering ? <CheckoutPayment items={[]} subtotal={0} onQuote={setQuote} /> : loading ? <p className="commerce-state text-center py-16">Loading your cart...</p> : error ? <LoadError message={error} onRetry={() => setRetry(r => r + 1)} /> : hasUnavailable ? <div role="alert" className="commerce-state text-center py-16"><p className="mb-4">Some items are no longer available. Update your cart before checking out.</p><Link href="/cart" className="underline">Return to cart</Link></div> : items.length === 0 ? (
+          <div className="commerce-state text-center py-16">
             <p className="text-gray-500 font-inter text-sm mb-6">Your cart is empty</p>
             <Link href="/shop" className="inline-block bg-black text-white px-10 py-4 font-inter text-xs tracking-[0.2em]">SHOP NOW</Link>
           </div>

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import AtmosphereState from '@/components/AtmosphereState';
+
 import ProductCard from '@/components/ProductCard';
 import LoadError from '@/components/LoadError';
 import { ApiError, apiRequest, cartRequest, errorMessage } from '@/lib/api';
@@ -82,7 +84,7 @@ export default function ProductDetail() {
   };
 
   if (loading) return <div className="min-h-screen pt-24 px-4" aria-label="Loading product"><div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12"><div className="aspect-[3/4] skeleton" /><div><div className="h-4 skeleton w-20 mb-3" /><div className="h-8 skeleton w-3/4 mb-4" /><div className="h-6 skeleton w-1/3" /></div></div></div>;
-  if (!product) return <div className="min-h-screen pt-32 px-4 max-w-3xl mx-auto text-center">{missing ? <><h1 className="font-playfair text-3xl mb-4">Product not available</h1><p className="text-gray-500 mb-6">This listing may have been removed or is no longer available.</p></> : <LoadError message={error || 'Unable to load this product.'} onRetry={() => setRetry(r => r + 1)} />}<Link href="/shop" className="inline-block mt-6 underline">Browse current products</Link></div>;
+  if (!product) return <AtmosphereState>{missing ? <><h1 className="font-playfair text-3xl mb-4">Product not available</h1><p className="text-gray-500 mb-6">This listing may have been removed or is no longer available.</p></> : <LoadError message={error || 'Unable to load this product.'} onRetry={() => setRetry(r => r + 1)} />}<Link href="/shop" className="inline-block mt-6 underline">Browse current products</Link></AtmosphereState>;
 
   const savings = Math.max(0, product.originalPrice - product.ourPrice);
   const images = deduplicateImages(product.images || []);
@@ -105,7 +107,7 @@ export default function ProductDetail() {
             </div>
             {images.length > 1 && <div className="grid grid-cols-4 gap-2">{images.map((img, i) => <button key={img} aria-label={`View image ${i + 1}`} onClick={() => setSelectedImage(i)} className={`relative aspect-square overflow-hidden ${selectedImage === i ? 'ring-2 ring-black' : 'ring-1 ring-gray-200'}`}><img src={img} alt="" className="w-full h-full object-contain bg-white" /></button>)}</div>}
           </div>
-          <div className="lg:sticky lg:top-28 h-fit">
+          <div className="editorial-product-details lg:sticky lg:top-28 h-fit">
             <p className="font-inter text-xs tracking-[0.3em] text-gray-400 mb-2">{product.brand.toUpperCase()}</p>
             <h1 className="font-playfair text-2xl md:text-3xl mb-6">{product.name}</h1>
             <div className="flex flex-wrap items-baseline gap-4 mb-2">

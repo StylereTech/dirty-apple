@@ -119,7 +119,7 @@ export default function Navbar() {
       <div
         id="mobile-menu"
         aria-hidden={!menuOpen}
-        className={`fixed inset-0 z-40 bg-black transition-all duration-500 ${
+        className={`editorial-mobile-menu fixed inset-0 z-40 bg-black transition-all duration-500 ${
           menuOpen ? 'visible opacity-100 pointer-events-auto' : 'invisible opacity-0 pointer-events-none'
         }`}
       >

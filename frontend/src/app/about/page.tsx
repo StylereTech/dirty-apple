@@ -4,7 +4,7 @@ export default function About() {
   const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
   const hasSupportEmail = !!supportEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail);
   return (
-    <div className="expressive-about min-h-screen">
+    <div className="expressive-about min-h-screen pt-20">
       <div className="expressive-header story-header bg-black text-white py-24 text-center px-4"><PageAtmosphere variant="story" image="/editorial-collage.jpg" />
         <h1 className="font-playfair text-4xl md:text-6xl mb-4">About Dirty Apple</h1>
         <p className="font-inter font-light text-gray-300 max-w-2xl mx-auto">
@@ -12,8 +12,8 @@ export default function About() {
         </p>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-20">
-        <section className="mb-20">
+      <div className="editorial-story-body max-w-4xl mx-auto px-4 py-20">
+        <section className="editorial-story-intro mb-20">
           <h2 className="font-playfair text-3xl mb-6">Our Story</h2>
           <p className="font-inter text-gray font-light leading-relaxed mb-6">
             Dirty Apple was born from a simple observation: luxury fashion retains its elegance and craftsmanship,
