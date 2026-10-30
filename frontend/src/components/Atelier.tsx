@@ -103,6 +103,7 @@ function Navbar() {
   }, []);
   useEffect(() => setMenuOpen(false), [location, searchString]);
   useEffect(() => {
+    if (menuRef.current) menuRef.current.inert = !menuOpen;
     if (menuOpen) {
       menuRef.current?.querySelector<HTMLAnchorElement>('a[href]')?.focus();
     } else if (menuWasOpen.current) {
@@ -180,7 +181,7 @@ function Navbar() {
           </div>
         </div>
       </nav>
-      <div id="mobile-menu" ref={menuRef} className={`mobile-menu ${menuOpen ? 'menu-open' : ''}`} role="dialog" aria-modal="true" aria-label="Main menu" aria-hidden={!menuOpen} {...(!menuOpen ? { inert: '' } : {})}>
+      <div id="mobile-menu" ref={menuRef} className={`mobile-menu ${menuOpen ? 'menu-open' : ''}`} role="dialog" aria-modal="true" aria-label="Main menu" aria-hidden={!menuOpen}>
         <div className="mobile-menu-content">
           {mobileItems.map((item, i) => (
             <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)} className="mobile-menu-link" style={{ transitionDelay: menuOpen ? `${i * 45}ms` : '0ms' }} data-testid={`link-mobile-${item.label.toLowerCase().replaceAll(' ', '-')}`}>
