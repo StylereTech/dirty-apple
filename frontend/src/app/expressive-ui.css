@@ -267,7 +267,7 @@
   background:linear-gradient(90deg,#090909 3%,#09090970 35%,#09090970 65%,#090909 97%),url('/artwork/monochrome-atelier-v1.png') center/cover;
 }
 .site-refresh .editorial-section-title h2 { font-style:italic; }
-.site-refresh .editorial-closing {
+.site-refresh .original-home > .editorial-closing {
   background:linear-gradient(#00000070,#00000045),url('/artwork/monochrome-atelier-v1.png') center/cover;
 }
 .site-refresh .editorial-closing h2 { font-style:italic; }
