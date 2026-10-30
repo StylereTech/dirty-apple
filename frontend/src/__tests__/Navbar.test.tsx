@@ -10,7 +10,7 @@ vi.mock('next/link', () => ({
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/',
+  usePathname: () => '/', useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push: vi.fn() }),
 }))
 
 import Navbar from '../components/Navbar'
@@ -29,7 +29,7 @@ describe('Navbar', () => {
   it('renders desktop nav links', () => {
     render(<Navbar />)
     // Desktop and mobile menus both render, so use getAllByText
-    expect(screen.getAllByText('Shop').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Shop All').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Bags').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Shoes').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Sale').length).toBeGreaterThan(0)

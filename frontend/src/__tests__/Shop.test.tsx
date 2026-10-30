@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 const query = vi.hoisted(() => ({ value: new URLSearchParams() }));
-vi.mock('next/navigation', () => ({ useSearchParams: () => query.value }));
+vi.mock('next/navigation', () => ({ useSearchParams: () => query.value, usePathname: () => '/shop', useRouter: () => ({ push: vi.fn() }) }));
 vi.mock('@/lib/api', async importOriginal => ({ ...await importOriginal<typeof import('@/lib/api')>(), apiRequest: vi.fn() }));
 vi.mock('next/link', () => ({ default: ({ href, children }: { href: string; children: React.ReactNode }) => <a href={href}>{children}</a> }));
 import Shop from '@/app/shop/page';
@@ -30,5 +30,27 @@ describe('Shop navigation filters', () => {
     expect(path).not.toContain('search=');
     expect(path).not.toContain('featured=');
     expect(path).not.toContain('gender=');
+  });
+
+  it('renders actual API products instead of the concept empty state', async () => {
+    query.value = new URLSearchParams('category=bags');
+    vi.mocked(apiRequest).mockResolvedValue({ products: [{
+      _id: 'verified-bag', slug: 'verified-bag', name: 'Verified bag', brand: 'Prada', category: 'bags',
+      originalPrice: 300, ourPrice: 225, discount: 25, images: ['/cat-bags.jpg'], retailerSource: 'Saks',
+      inStock: true, purchaseMode: 'external',
+    }], total: 1, totalPages: 1, page: 1 });
+    render(<Shop />);
+    expect(await screen.findByText('Verified bag')).toBeInTheDocument();
+    expect(screen.getByText('1 product')).toBeInTheDocument();
+    expect(screen.queryByText('No products found')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Verified bag/i })).toHaveAttribute('href', '/product/verified-bag');
+  });
+
+  it('shows a service error rather than claiming the catalog is empty', async () => {
+    query.value = new URLSearchParams();
+    vi.mocked(apiRequest).mockRejectedValue(new Error('offline'));
+    render(<Shop />);
+    expect(await screen.findByText('Products unavailable')).toBeInTheDocument();
+    expect(screen.queryByText('No products found')).not.toBeInTheDocument();
   });
 });
