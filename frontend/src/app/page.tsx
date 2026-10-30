@@ -1,341 +1,151 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { apiRequest } from '@/lib/api';
-import { Product, ProductPage, money } from '@/lib/catalog';
+import { Product, ProductPage } from '@/lib/catalog';
+import ProductCard from '@/components/ProductCard';
 
-const CATEGORIES = [
-  { name: 'Bags',        slug: 'bags',        image: '/cat-bags.jpg' },
-  { name: 'Shoes',       slug: 'shoes',       image: '/cat-shoes.jpg' },
-  { name: 'Clothing',    slug: 'clothing',    image: '/cat-clothing.jpg' },
-  { name: 'Accessories', slug: 'accessories', image: '/cat-accessories.jpg' },
+const categories = [
+  { name: 'Bags', slug: 'bags', image: '/cat-bags.jpg', note: 'Objects of affection' },
+  { name: 'Shoes', slug: 'shoes', image: '/cat-shoes.jpg', note: 'A different direction' },
+  { name: 'Clothing', slug: 'clothing', image: '/cat-clothing.jpg', note: 'Room for expression' },
+  { name: 'Accessories', slug: 'accessories', image: '/cat-accessories.jpg', note: 'The finishing thought' },
 ];
+const brands = ['Saint Laurent', 'Gucci', 'Prada', 'Loewe', 'Bottega Veneta', 'Dior', 'Valentino', 'Balenciaga'];
 
-const BRANDS = [
-  'Saint Laurent', 'Gucci', 'Prada', 'Valentino', 'Burberry', 'Amiri',
-  'Off-White', 'Balenciaga', 'Dior', 'Givenchy', 'Versace', 'Fendi',
-  'Bottega Veneta', 'Loewe', 'Moncler', 'Tom Ford',
-];
-
-const TICKER_ITEMS = [
-  'SAINT LAURENT', 'GUCCI', 'PRADA', 'VALENTINO', 'BURBERRY', 'AMIRI',
-  'OFF-WHITE', 'BALENCIAGA', 'DIOR', 'CURATED LUXURY', 'UNCOVERED PRICES', 'EXPLORE THE EDIT',
-];
+function Arrow({ diagonal = false }: { diagonal?: boolean }) {
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d={diagonal ? 'M6 18 18 6M6 6h12v12' : 'M4 12h16m-6-6 6 6-6 6'} stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
 
 export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [catalogError, setCatalogError] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [motion, setMotion] = useState(false);
+  const stage = useRef<HTMLDivElement>(null);
+  const frame = useRef<number | null>(null);
+
+  useEffect(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setMotion(!preference.matches);
+    const change = () => setMotion(!preference.matches);
+    preference.addEventListener('change', change);
+    return () => {
+      preference.removeEventListener('change', change);
+      if (frame.current !== null) cancelAnimationFrame(frame.current);
+    };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
     apiRequest<ProductPage>('/products?featured=true&inStock=true&limit=4&sort=price-low', { signal: controller.signal })
       .then(data => { if (!controller.signal.aborted) setFeatured(data.products); })
-      .catch(() => { if (!controller.signal.aborted) setCatalogError(true); });
+      .catch(() => { if (!controller.signal.aborted) setCatalogError(true); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, []);
 
+  function resetTilt() {
+    if (frame.current !== null) cancelAnimationFrame(frame.current);
+    stage.current?.style.setProperty('--tilt-x', '0deg');
+    stage.current?.style.setProperty('--tilt-y', '0deg');
+  }
+
   return (
-    <>
-      <style>{`
-        @keyframes ticker {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-        @keyframes tickerSlow {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-        .ticker-track {
-          display: flex;
-          width: max-content;
-          animation: ticker 28s linear infinite;
-        }
-        .ticker-track-slow {
-          display: flex;
-          width: max-content;
-          animation: tickerSlow 45s linear infinite;
-        }
-        .ticker-track:hover,
-        .ticker-track-slow:hover { animation-play-state: paused; }
-
-        @keyframes heroFade {
-          from { opacity: 0; transform: translateY(24px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .hero-line-1 { opacity: 0; animation: heroFade 1s ease 0.2s forwards; }
-        .hero-line-2 { opacity: 0; animation: heroFade 1s ease 0.5s forwards; }
-        .hero-cta    { opacity: 0; animation: heroFade 1s ease 0.8s forwards; }
-      `}</style>
-
-      <div className="bg-black min-h-screen">
-
-        {/* ── HERO ── */}
-        <section className="relative h-screen w-full overflow-hidden">
-          <img
-            src="/hero-bg.jpg"
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover object-center"
-          />
-          {/* Gradient overlay — heavy at bottom, light at top */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/85" />
-
-          <div className="absolute inset-0 flex flex-col items-center justify-end pb-20 md:pb-28 px-4 text-center">
-            <p className="hero-line-1 font-inter text-[10px] tracking-[0.45em] text-white/60 mb-5 uppercase">
-              Luxury Resale · Redefined
-            </p>
-            <h1 className="hero-line-2 font-playfair text-[72px] md:text-[110px] lg:text-[140px] text-white leading-[0.9] tracking-tight mb-10">
-              DIRTY<br />APPLE
-            </h1>
-            <div className="hero-cta flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/shop"
-                className="bg-white text-black px-12 py-4 font-inter text-[11px] tracking-[0.3em] hover:bg-gray-100 transition-colors uppercase"
-              >
-                Shop Now
-              </Link>
-              <Link
-                href="/collections/sale"
-                className="border border-white/50 text-white px-12 py-4 font-inter text-[11px] tracking-[0.3em] hover:bg-white/10 transition-colors uppercase"
-              >
-                View Deals
-              </Link>
-            </div>
+    <div className="dimension-home" data-motion={motion ? 'on' : 'off'}>
+      <section className="dimension-hero" aria-labelledby="hero-heading">
+        <div className="hero-copy">
+          <p className="eyebrow"><span className="signal-dot" /> A new perspective on fashion</p>
+          <h1 id="hero-heading">Style in<br /><em>another</em><br />dimension.</h1>
+          <p className="hero-description">The spirit of Paris. The instinct of Milan.<br className="desktop-break" /> A world of possibilities, made your own.</p>
+          <div className="hero-actions">
+            <Link href="/shop" className="atelier-button atelier-button-dark">Explore the edit <Arrow /></Link>
+            <Link href="/collections/sale" className="atelier-text-link">Discover the sale <Arrow diagonal /></Link>
           </div>
-        </section>
-
-        {/* ── TICKER BAND ── */}
-        <div className="bg-white py-3 overflow-hidden border-y border-gray-100">
-          <div className="ticker-track">
-            {[0, 1].map(i => (
-              <span key={i} className="flex items-center shrink-0">
-                {TICKER_ITEMS.map(item => (
-                  <span key={item + i} className="flex items-center shrink-0">
-                    <span className="font-inter text-[10px] tracking-[0.3em] text-black whitespace-nowrap px-5 uppercase">
-                      {item}
-                    </span>
-                    <span className="text-gray-300 text-xs">✦</span>
-                  </span>
-                ))}
-              </span>
-            ))}
-          </div>
+          <div className="hero-footnote"><span>Curated luxury. Uncovered prices.</span><span className="fine-rule" /></div>
         </div>
 
-        {/* ── SHOP BY CATEGORY ── */}
-        <section className="px-4 md:px-8 py-24">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-14">
-              <p className="font-inter text-[10px] tracking-[0.5em] text-white/30 uppercase mb-3">Explore</p>
-              <h2 className="font-playfair text-4xl md:text-6xl text-white">The Edit</h2>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {CATEGORIES.map(cat => (
-                <Link
-                  key={cat.slug}
-                  href={`/shop?category=${cat.slug}`}
-                  className="group relative aspect-[3/4] overflow-hidden"
-                >
-                  <img
-                    src={cat.image}
-                    alt={cat.name}
-                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
-                    style={{ transition: 'transform 0.7s cubic-bezier(0.25,0.46,0.45,0.94)' }}
-                  />
-                  {/* Dark vignette */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-500" />
-
-                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
-                    <p className="font-playfair text-xl md:text-2xl text-white tracking-wide">
-                      {cat.name}
-                    </p>
-                    <p
-                      className="font-inter text-[9px] tracking-[0.3em] text-white/0 group-hover:text-white/70 mt-1.5 uppercase transition-colors duration-300"
-                    >
-                      Shop Now →
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
+        <div className="hero-stage" ref={stage}
+          onPointerMove={event => {
+            if (!motion || event.pointerType !== 'mouse') return;
+            const bounds = event.currentTarget.getBoundingClientRect();
+            const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 7;
+            const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * -7;
+            if (frame.current !== null) cancelAnimationFrame(frame.current);
+            frame.current = requestAnimationFrame(() => {
+              stage.current?.style.setProperty('--tilt-x', y + 'deg');
+              stage.current?.style.setProperty('--tilt-y', x + 'deg');
+            });
+          }}
+          onPointerLeave={resetTilt}>
+          <div className="stage-halo" aria-hidden="true" />
+          <div className="chrome-orbit orbit-one" aria-hidden="true" />
+          <div className="chrome-orbit orbit-two" aria-hidden="true" />
+          <div className="campaign-frame">
+            <img src="/hero-bg.jpg" alt="Dirty Apple fashion campaign featuring three models in statement eyewear and tailored looks" fetchPriority="high" />
+            <div className="campaign-caption"><span>DIRTY APPLE — THE NEW PERSPECTIVE</span><span>01 / 03</span></div>
           </div>
-        </section>
+          <div className="floating-caption"><span className="caption-spark" aria-hidden="true">✳</span><div><span>Fashion is a feeling.</span><small>Find yours.</small></div></div>
+          <div className="stage-index" aria-hidden="true">FORM / FEELING / FUTURE</div>
+          <button className="motion-control" aria-pressed={motion} onClick={() => { setMotion(!motion); resetTilt(); }} aria-label={motion ? 'Pause ambient motion' : 'Enable ambient motion'}>
+            <span aria-hidden="true">{motion ? 'Ⅱ' : '▷'}</span> Motion {motion ? 'on' : 'off'}
+          </button>
+        </div>
+      </section>
 
-        {/* ── EDITORIAL SPLIT ── */}
-        <section className="px-4 md:px-8 pb-24">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="perspective-strip"><p>Inspired by the cities.<br /><strong>Defined by you.</strong></p><span>PARIS</span><i aria-hidden="true">✳</i><span>MILANO</span><i aria-hidden="true">✳</i><span>EVERYWHERE</span><span className="strip-coordinate" aria-hidden="true">A DIFFERENT POINT OF VIEW ↗</span></div>
 
-              {/* Women's */}
-              <Link href="/shop?gender=women" className="group relative overflow-hidden aspect-[3/4]">
-                <img
-                  src="/editorial-collage.jpg"
-                  alt="Women's Edit"
-                  className="w-full h-full object-cover"
-                  style={{ transition: 'transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94)' }}
-                  onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')}
-                  onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-8 md:p-10">
-                  <p className="font-inter text-[9px] tracking-[0.45em] text-white/50 uppercase mb-2">
-                    The Women's Edit
-                  </p>
-                  <h3 className="font-playfair text-3xl md:text-[42px] text-white leading-tight mb-5">
-                    Dressed to<br />Dominate
-                  </h3>
-                  <span className="inline-flex items-center gap-2 font-inter text-[10px] tracking-[0.3em] text-white uppercase border-b border-white/40 pb-0.5 group-hover:border-white transition-colors duration-300">
-                    Shop Women
-                  </span>
-                </div>
-              </Link>
+      <section className="atelier-section" id="the-edit" aria-labelledby="edit-heading">
+        <div className="section-heading">
+          <div><p className="eyebrow">01 — The collection</p><h2 id="edit-heading">Follow your <em>curiosity.</em></h2></div>
+          <p>Considered pieces. Unexpected combinations.<br />Start with whatever speaks to you.</p>
+        </div>
+        <div className="category-gallery">
+          {categories.map((category, index) => (
+            <Link href={'/shop?category=' + category.slug} key={category.slug} className="category-object">
+              <div className="category-photo"><img src={category.image} alt={category.name} loading="lazy" /><span className="object-number" aria-hidden="true">0{index + 1}</span><span className="object-arrow"><Arrow diagonal /></span></div>
+              <div className="category-caption"><h3>{category.name}</h3><p>{category.note}</p></div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-              {/* Men's */}
-              <Link href="/shop?gender=men" className="group relative overflow-hidden aspect-[3/4]">
-                <img
-                  src="/editorial-mens.jpg"
-                  alt="Men's Edit"
-                  className="w-full h-full object-cover"
-                  style={{ transition: 'transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94)' }}
-                  onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')}
-                  onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-8 md:p-10">
-                  <p className="font-inter text-[9px] tracking-[0.45em] text-white/50 uppercase mb-2">
-                    The Men's Edit
-                  </p>
-                  <h3 className="font-playfair text-3xl md:text-[42px] text-white leading-tight mb-5">
-                    Effortless.<br />Sharp. Real.
-                  </h3>
-                  <span className="inline-flex items-center gap-2 font-inter text-[10px] tracking-[0.3em] text-white uppercase border-b border-white/40 pb-0.5 group-hover:border-white transition-colors duration-300">
-                    Shop Men
-                  </span>
-                </div>
-              </Link>
-
-            </div>
-          </div>
-        </section>
-
-        {/* ── FEATURED DROPS ── */}
-        {catalogError && <div role="status" className="max-w-7xl mx-auto px-4 py-8 text-center text-white/70 text-sm">Current listings are temporarily unavailable. <Link href="/shop" className="underline">Try the shop again</Link>.</div>}
-        {featured.length > 0 && (
-          <section className="bg-neutral-950 px-4 md:px-8 py-24">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex items-end justify-between mb-14">
-                <div>
-                  <p className="font-inter text-[10px] tracking-[0.5em] text-white/25 uppercase mb-3">Handpicked</p>
-                  <h2 className="font-playfair text-4xl md:text-5xl text-white">Featured Drops</h2>
-                </div>
-                <Link
-                  href="/shop?featured=true"
-                  className="font-inter text-[10px] tracking-[0.25em] text-white/40 hover:text-white transition-colors uppercase border-b border-white/20 hover:border-white/60 pb-0.5"
-                >
-                  View All
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {featured.map((p) => (
-                  <Link key={p._id} href={`/product/${encodeURIComponent(p.slug || p._id)}`} className="group">
-                    <div className="aspect-[3/4] overflow-hidden bg-white border border-gray-100 mb-3 relative">
-                      <img
-                        src={p.images?.[0]}
-                        alt={p.name}
-                        className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
-                      />
-                      {p.discount > 0 && (
-                        <span className="absolute top-3 left-3 font-inter text-[9px] tracking-[0.15em] bg-white text-black px-2 py-1">
-                          -{p.discount}%
-                        </span>
-                      )}
-                    </div>
-                    <p className="font-inter text-[9px] tracking-[0.25em] text-white/30 uppercase mb-1">
-                      {p.brand}
-                    </p>
-                    <p className="font-inter text-sm text-white mb-2 truncate">{p.name}</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-inter text-sm text-white">{money(p.ourPrice, p.currency)}</span>
-                      {p.originalPrice > p.ourPrice && (
-                        <span className="font-inter text-xs text-white/25 line-through">
-                          {money(p.originalPrice, p.currency)}
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── BRAND MARQUEE ── */}
-        <section className="py-20 border-t border-white/8 overflow-hidden">
-          <p className="font-inter text-[9px] tracking-[0.5em] text-white/15 text-center uppercase mb-10">
-            Explore Designer Style
-          </p>
-          <div className="ticker-track-slow">
-            {[0, 1].map(i => (
-              <span key={i} className="flex items-center shrink-0">
-                {BRANDS.map(b => (
-                  <span
-                    key={b + i}
-                    className="font-playfair text-2xl md:text-3xl text-white/15 hover:text-white/50 whitespace-nowrap px-8 transition-colors duration-300 cursor-default"
-                  >
-                    {b}
-                  </span>
-                ))}
-              </span>
-            ))}
-          </div>
-        </section>
-
-        {/* ── FOOTER CTA ── */}
-        <section className="py-36 px-4 text-center border-t border-white/8">
-          <p className="font-inter text-[10px] tracking-[0.5em] text-white/25 uppercase mb-5">
-            Luxury For Less
-          </p>
-          <h2 className="font-playfair text-5xl md:text-7xl lg:text-8xl text-white leading-tight mb-10">
-            The Drop<br />Doesn't Wait.
-          </h2>
-          <Link
-            href="/shop"
-            className="inline-block bg-white text-black px-16 py-5 font-inter text-[11px] tracking-[0.35em] hover:bg-gray-100 transition-colors uppercase"
-          >
-            Shop the Collection
+      <section className="editorial-section" aria-labelledby="editorial-heading">
+        <div className="editorial-intro"><p className="eyebrow">02 — Ways of seeing</p><h2 id="editorial-heading">An eye for the unexpected.<br /><em>A style that’s entirely yours.</em></h2><p>From a café in Saint-Germain to a late afternoon in Milan.<br />Take the inspiration. Make it personal.</p></div>
+        <div className="editorial-gallery">
+          <Link href="/shop?gender=women" className="editorial-object editorial-women">
+            <div className="editorial-photo"><img src="/editorial-collage.jpg" alt="An expressive collage of fashion looks from the women's edit" loading="lazy" /><span className="editorial-stamp">A STUDY IN<br /><em>individuality.</em></span></div>
+            <div className="editorial-caption"><div><p className="eyebrow">The women’s edit</p><h3>Every side of you.</h3></div><span className="editorial-link">Explore women <Arrow diagonal /></span></div>
           </Link>
-        </section>
+          <Link href="/shop?gender=men" className="editorial-object editorial-men">
+            <div className="editorial-photo"><img src="/editorial-mens.jpg" alt="Contemporary menswear with relaxed silhouettes and statement eyewear" loading="lazy" /></div>
+            <div className="editorial-caption"><div><p className="eyebrow">The men’s edit</p><h3>A new kind of ease.</h3></div><span className="editorial-link">Explore men <Arrow diagonal /></span></div>
+            <p className="editorial-note">Good style leaves room for possibility.</p>
+          </Link>
+        </div>
+      </section>
 
-        {/* ── FOOTER ── */}
-        <footer className="border-t border-white/8 py-14 px-8">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="font-playfair text-2xl text-white tracking-wide">Dirty Apple</p>
-            <div className="flex flex-wrap justify-center gap-6 md:gap-10">
-              {[
-                { label: 'Shop',        href: '/shop' },
-                { label: 'Bags',        href: '/shop?category=bags' },
-                { label: 'Shoes',       href: '/shop?category=shoes' },
-                { label: 'Clothing',    href: '/shop?category=clothing' },
-                { label: 'Accessories', href: '/shop?category=accessories' },
-                { label: 'Sale',        href: '/collections/sale' },
-              ].map(l => (
-                <Link
-                  key={l.label}
-                  href={l.href}
-                  className="font-inter text-[10px] tracking-[0.25em] text-white/30 hover:text-white transition-colors uppercase"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-            <p className="font-inter text-[10px] text-white/15">© {new Date().getFullYear()} Dirty Apple</p>
-          </div>
-        </footer>
+      <section className="atelier-section featured-section" aria-labelledby="featured-heading">
+        <div className="section-heading"><div><p className="eyebrow">03 — Discover something</p><h2 id="featured-heading">Your next <em>favourite.</em></h2></div><Link href="/shop?featured=true" className="atelier-text-link">View the selection <Arrow diagonal /></Link></div>
+        {loading ? <div className="featured-grid" aria-label="Loading featured listings" role="status">{[0, 1, 2, 3].map(i => <div className="featured-skeleton skeleton" key={i} />)}</div>
+          : catalogError ? <div className="catalog-notice" role="status"><p>Current listings are temporarily unavailable.</p><Link href="/shop" className="atelier-text-link">Try the shop again <Arrow /></Link></div>
+          : featured.length > 0 ? <div className="featured-grid">{featured.map(product => <ProductCard key={product._id} product={product} />)}</div>
+          : <div className="catalog-notice"><p>There are no featured listings right now. Explore the full collection for your next discovery.</p><Link href="/shop" className="atelier-text-link">Explore all listings <Arrow /></Link></div>}
+      </section>
 
-      </div>
-    </>
+      <section className="designer-section" aria-labelledby="designer-heading">
+        <p id="designer-heading" className="eyebrow">Explore the names that inspire you</p>
+        <div className="designer-names">{brands.map(brand => <Link key={brand} href={'/shop?brand=' + encodeURIComponent(brand)}>{brand}</Link>)}</div>
+      </section>
+
+      <section className="invitation-section" aria-labelledby="invitation-heading">
+        <div className="invitation-orbit" aria-hidden="true" />
+        <p className="eyebrow">An open invitation</p>
+        <h2 id="invitation-heading">The future of style<br />looks like <em>you.</em></h2>
+        <p>No dress code. Just your point of view.</p>
+        <Link href="/shop" className="atelier-button atelier-button-light">Find your next favourite <Arrow /></Link>
+      </section>
+    </div>
   );
 }

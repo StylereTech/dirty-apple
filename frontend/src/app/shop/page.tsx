@@ -72,9 +72,9 @@ function ShopInner() {
   }, [selectedBrands, selectedCategory, priceRange, minDiscount, sortBy, page, searchQuery, ready, featured, gender, onSale, retry]);
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="catalog-page min-h-screen pt-20">
       {/* Header */}
-      <div className="bg-black text-white py-12 px-4">
+      <div className="catalog-heading">
         <div className="max-w-7xl mx-auto">
           <p className="font-inter text-xs tracking-[0.3em] text-gray-500 mb-2">
             {selectedCategory ? selectedCategory.toUpperCase() : 'ALL PRODUCTS'}
@@ -96,7 +96,7 @@ function ShopInner() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="catalog-workspace max-w-7xl mx-auto px-4 py-8">
         {/* Mobile filter toggle */}
         <button
           onClick={() => setMobileFilters(!mobileFilters)}
@@ -107,7 +107,7 @@ function ShopInner() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <div className={`${mobileFilters ? 'block' : 'hidden'} lg:block`}>
+          <div className={`catalog-filter-panel ${mobileFilters ? 'block' : 'hidden'} lg:block`}>
             <FilterSidebar
               brands={brands}
               categories={categories}
@@ -124,7 +124,7 @@ function ShopInner() {
           </div>
 
           {/* Grid */}
-          <div className="flex-1">
+          <div className="catalog-results flex-1">
             <div className="flex justify-between items-center mb-6">
               <p className="text-gray-500 font-inter text-sm">
                 {loading ? 'Loading...' : error ? 'Products unavailable' : `${total} product${total !== 1 ? 's' : ''}`}

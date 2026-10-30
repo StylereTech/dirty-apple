@@ -1,147 +1,70 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+const links = [
+  { href: '/shop', label: 'Shop' },
+  { href: '/shop?gender=women', label: 'Women' },
+  { href: '/shop?gender=men', label: 'Men' },
+  { href: '/collections/sale', label: 'Sale' },
+];
+const mobileLinks = [
+  { href: '/shop', label: 'Shop All' },
+  { href: '/shop?category=bags', label: 'Bags' },
+  { href: '/shop?category=shoes', label: 'Shoes' },
+  { href: '/shop?category=clothing', label: 'Clothing' },
+  { href: '/shop?category=accessories', label: 'Accessories' },
+  { href: '/collections/sale', label: 'Sale' },
+];
+
 export default function Navbar() {
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const isHome = pathname === '/';
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen) {
+      if (dialog.current?.open) dialog.current.close();
+      return;
+    }
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false); };
-    window.addEventListener('keydown', close);
-    return () => { document.body.style.overflow = previous; window.removeEventListener('keydown', close); };
+    dialog.current?.showModal();
+    return () => { document.body.style.overflow = previous; };
   }, [menuOpen]);
 
-  const transparent = isHome && !scrolled && !menuOpen;
+  function closeMenu() {
+    setMenuOpen(false);
+    trigger.current?.focus();
+  }
 
   return (
     <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          transparent
-            ? 'bg-transparent'
-            : 'bg-white border-b border-gray-100'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between relative">
-
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className={`lg:hidden transition-colors ${transparent ? 'text-white' : 'text-black'}`}
-            aria-label="Menu"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {menuOpen
-                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />}
-            </svg>
-          </button>
-
-          {/* Left links */}
-          <div className="hidden lg:flex items-center gap-8">
-            {[
-              { href: '/shop',               label: 'Shop' },
-              { href: '/shop?category=bags', label: 'Bags' },
-              { href: '/shop?category=shoes',label: 'Shoes' },
-              { href: '/collections/sale',   label: 'Sale' },
-            ].map(l => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={`font-inter text-[11px] tracking-[0.18em] uppercase transition-colors duration-300 ${
-                  transparent
-                    ? 'text-white/80 hover:text-white'
-                    : 'text-black/60 hover:text-black'
-                } ${pathname === l.href ? 'font-semibold' : ''}`}
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Center logo */}
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-            <img
-              src="/dirty-apple-logo.png"
-              alt="Dirty Apple"
-              className={`h-8 md:h-9 w-auto object-contain transition-all duration-300 ${
-                transparent ? 'brightness-0 invert' : 'mix-blend-multiply'
-              }`}
-            />
+      <a href="#main-content" className="skip-link">Skip to content</a>
+      <header className="atelier-header">
+        <nav className="atelier-nav" aria-label="Main navigation">
+          <Link href="/" className="atelier-brand" aria-label="Dirty Apple home">
+            <img src="/dirty-apple-logo.png" alt="Dirty Apple" width="42" height="42" />
+            <span>DIRTY APPLE<small>A DIFFERENT PERSPECTIVE</small></span>
           </Link>
-
-          {/* Right icons */}
-          <div className="flex items-center gap-5">
-            <Link
-              href="/shop"
-              aria-label="Search products"
-              className={`transition-colors duration-300 ${transparent ? 'text-white/80 hover:text-white' : 'text-black/60 hover:text-black'}`}
-            >
-              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </Link>
-            <Link
-              href="/cart"
-              aria-label="Shopping cart"
-              className={`transition-colors duration-300 ${transparent ? 'text-white/80 hover:text-white' : 'text-black/60 hover:text-black'}`}
-            >
-              <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            </Link>
+          <div className="desktop-navigation">{links.map(link => <Link key={link.href} href={link.href} className={link.href === pathname ? 'nav-current' : ''}>{link.label}</Link>)}</div>
+          <div className="nav-actions">
+            <Link href="/shop" className="nav-icon" aria-label="Search products"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" strokeWidth="1.4" /><path d="m16 16 4.5 4.5" stroke="currentColor" strokeWidth="1.4" /></svg></Link>
+            <Link href="/cart" className="nav-icon" aria-label="Shopping cart"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 8h14l1 13H4L5 8Zm3 0V6a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg></Link>
+            <button ref={trigger} className="menu-trigger nav-icon" aria-label="Menu" aria-expanded={menuOpen} aria-controls="mobile-menu" onClick={() => setMenuOpen(true)}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8h16M4 16h16" stroke="currentColor" strokeWidth="1.4" /></svg></button>
           </div>
-
+        </nav>
+      </header>
+      <dialog ref={dialog} id="mobile-menu" className="atelier-menu" aria-labelledby="menu-title" onCancel={event => { event.preventDefault(); closeMenu(); }} onClick={event => { if (event.target === event.currentTarget) closeMenu(); }}>
+        <div className="menu-panel"><div className="menu-heading"><p id="menu-title" className="eyebrow">A world to discover</p><button className="nav-icon" onClick={closeMenu} aria-label="Close menu">✕</button></div>
+          <nav aria-label="Mobile navigation">{mobileLinks.map((link, i) => <Link key={link.href} href={link.href} onClick={closeMenu}><small>0{i + 1}</small>{link.label}<span aria-hidden="true">↗</span></Link>)}</nav>
+          <p className="menu-note">Your style. Your point of view.</p>
         </div>
-      </nav>
-
-      {/* Mobile full-screen menu */}
-      <div
-        id="mobile-menu"
-        aria-hidden={!menuOpen}
-        className={`fixed inset-0 z-40 bg-black transition-all duration-500 ${
-          menuOpen ? 'visible opacity-100 pointer-events-auto' : 'invisible opacity-0 pointer-events-none'
-        }`}
-      >
-        <div className="flex flex-col justify-center h-full px-10 gap-8 pt-16">
-          {[
-            { href: '/shop',                        label: 'Shop All' },
-            { href: '/shop?category=bags',          label: 'Bags' },
-            { href: '/shop?category=shoes',         label: 'Shoes' },
-            { href: '/shop?category=clothing',      label: 'Clothing' },
-            { href: '/shop?category=accessories',   label: 'Accessories' },
-            { href: '/collections/sale',            label: 'Sale' },
-          ].map((l, i) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={() => setMenuOpen(false)}
-              className="font-playfair text-4xl text-white hover:text-white/50 transition-colors"
-              style={{ animationDelay: `${i * 60}ms` }}
-            >
-              {l.label}
-            </Link>
-          ))}
-        </div>
-      </div>
+      </dialog>
     </>
   );
 }
