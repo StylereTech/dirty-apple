@@ -1,0 +1,418 @@
+[
+  {
+    "retailer": "mrporter",
+    "externalProductId": "46376663162971221",
+    "variantId": "beige",
+    "name": "Wool-Canvas Blouson Jacket",
+    "brand": "AURALEE",
+    "category": "clothing",
+    "gender": "men",
+    "originalPrice": 1220,
+    "salePrice": 732,
+    "currency": "USD",
+    "retailerUrl": "https://www.mrporter.com/en-us/mens/product/auralee/clothing/blousons/wool-canvas-blouson-jacket/46376663162971221",
+    "images": [
+      "https://www.mrporter.com/variants/images/46376663162971221/in/w1500_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162971221/ou/w2000_q60.jpg"
+    ],
+    "inStock": true,
+    "sizes": [
+      {
+        "size": "3",
+        "available": true
+      },
+      {
+        "size": "4",
+        "available": false
+      },
+      {
+        "size": "5",
+        "available": true
+      }
+    ],
+    "colors": [
+      "Beige"
+    ],
+    "observedAt": "2026-10-30T05:16:58.302Z"
+  },
+  {
+    "retailer": "mrporter",
+    "externalProductId": "46376663162975317",
+    "variantId": "taupe",
+    "name": "Retro Classic Waxed-Suede Sneakers",
+    "brand": "COMMON PROJECTS",
+    "category": "shoes",
+    "gender": "men",
+    "originalPrice": 600,
+    "salePrice": 360,
+    "currency": "USD",
+    "retailerUrl": "https://www.mrporter.com/en-us/mens/product/common-projects/shoes/low-top-sneakers/retro-classic-waxed-suede-sneakers/46376663162975317",
+    "images": [
+      "https://www.mrporter.com/variants/images/46376663162975317/in/w1500_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162975317/ou/w1500_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162975317/e1/w1500_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162975317/bk/w1500_q60.jpg"
+    ],
+    "inStock": true,
+    "sizes": [
+      {
+        "size": "EU 39",
+        "available": false
+      },
+      {
+        "size": "EU 40",
+        "available": true
+      },
+      {
+        "size": "EU 41",
+        "available": false
+      },
+      {
+        "size": "EU 42",
+        "available": false
+      },
+      {
+        "size": "EU 43",
+        "available": false
+      },
+      {
+        "size": "EU 44",
+        "available": false
+      },
+      {
+        "size": "EU 45",
+        "available": false
+      },
+      {
+        "size": "EU 46",
+        "available": false
+      },
+      {
+        "size": "EU 47",
+        "available": false
+      }
+    ],
+    "colors": [
+      "Taupe"
+    ],
+    "observedAt": "2026-10-30T05:18:22.770Z",
+    "finalSale": false
+  },
+  {
+    "retailer": "mrporter",
+    "externalProductId": "46376663162840421",
+    "variantId": "black",
+    "name": "2.5cm Leather Belt",
+    "brand": "MR P.",
+    "category": "accessories",
+    "gender": "men",
+    "originalPrice": 140,
+    "salePrice": 84,
+    "currency": "USD",
+    "retailerUrl": "https://www.mrporter.com/en-us/mens/product/mr-p/accessories/leather-belts/25cm-leather-belt/46376663162840421",
+    "images": [
+      "https://www.mrporter.com/variants/images/46376663162840421/in/w1500_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162840421/e1/w1500_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162840421/fr/w1500_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162840421/in/w960_q60.jpg"
+    ],
+    "inStock": true,
+    "sizes": [
+      {
+        "size": "EU 85",
+        "available": false
+      },
+      {
+        "size": "EU 90",
+        "available": false
+      },
+      {
+        "size": "EU 95",
+        "available": false
+      },
+      {
+        "size": "EU 100",
+        "available": false
+      },
+      {
+        "size": "EU 105",
+        "available": true
+      },
+      {
+        "size": "EU 110",
+        "available": true
+      }
+    ],
+    "colors": [
+      "Black"
+    ],
+    "observedAt": "2026-10-30T05:18:31.425Z",
+    "finalSale": false
+  },
+  {
+    "retailer": "mrporter",
+    "externalProductId": "46376663162841906",
+    "variantId": "blue",
+    "name": "Logo-Embroidered Embellished Cotton-Twill Baseball Cap",
+    "brand": "CHERRY LOS ANGELES",
+    "category": "accessories",
+    "gender": "men",
+    "originalPrice": 80,
+    "salePrice": 48,
+    "currency": "USD",
+    "retailerUrl": "https://www.mrporter.com/en-us/mens/product/cherry-los-angeles/accessories/caps/logo-embroidered-embellished-cotton-twill-baseball-cap/46376663162841906",
+    "images": [
+      "https://www.mrporter.com/variants/images/46376663162841906/in/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162841906/ou/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162841906/bk/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162841906/cu/w2000_q60.jpg"
+    ],
+    "inStock": true,
+    "sizes": [
+      {
+        "size": "One size",
+        "available": true
+      }
+    ],
+    "colors": [
+      "Blue"
+    ],
+    "observedAt": "2026-10-30T05:23:54.766Z"
+  },
+  {
+    "retailer": "nordstrom",
+    "externalProductId": "8137047",
+    "variantId": "4444442B9U",
+    "name": "Prends Moi Xbody",
+    "brand": "PERRIN PARIS",
+    "category": "bags",
+    "gender": "women",
+    "originalPrice": 1200,
+    "salePrice": 720,
+    "currency": "USD",
+    "retailerUrl": "https://www.nordstrom.com/s/prends-moi-xbody/8137047?origin=coordinating-8137047-0-11-DLP_EVERGREEN_SALE.DLP_EVERGREEN_SALE_PATH_SUB_1-recbot-browse_results_interleave&recs_placement=DLP_EVERGREEN_SALE.DLP_EVERGREEN_SALE_PATH_SUB-1&recs_strategy=browse_results_interleave&recs_source=recbot&recs_page_type=category&recs_seed=0&color=White%7CBlack",
+    "images": [
+      "https://n.nordstrommedia.com/it/111be32a-f030-4b1b-bfbd-26130f658b15.jpeg?w=780&h=1170&crop=pad&trim=color"
+    ],
+    "inStock": true,
+    "sizes": [
+      {
+        "size": "One Size",
+        "available": true
+      }
+    ],
+    "colors": [
+      "White|Black"
+    ],
+    "observedAt": "2026-10-30T05:24:29.171Z",
+    "description": "Sold and shipped by PERRIN PARIS through Nordstrom. Retailer item #10627298."
+  },
+  {
+    "retailer": "mrporter",
+    "externalProductId": "46376663163003360",
+    "variantId": "blue",
+    "name": "Lyocell-Gabardine Shirt",
+    "brand": "TOM FORD",
+    "category": "clothing",
+    "gender": "men",
+    "originalPrice": 990,
+    "salePrice": 495,
+    "currency": "USD",
+    "retailerUrl": "https://www.mrporter.com/en-us/mens/product/tom-ford/clothing/plain-shirts/lyocell-gabardine-shirt/46376663163003360",
+    "images": [
+      "https://www.mrporter.com/variants/images/46376663163003360/in/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663163003360/ou/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663163003360/fr/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663163003360/bk/w2000_q60.jpg"
+    ],
+    "inStock": true,
+    "sizes": [
+      {
+        "size": "EU 40",
+        "available": true
+      },
+      {
+        "size": "EU 41",
+        "available": false
+      },
+      {
+        "size": "EU 42",
+        "available": false
+      },
+      {
+        "size": "EU 43",
+        "available": false
+      },
+      {
+        "size": "EU 44",
+        "available": true
+      },
+      {
+        "size": "EU 45",
+        "available": false
+      }
+    ],
+    "colors": [
+      "Blue"
+    ],
+    "observedAt": "2026-10-30T05:24:40.686Z",
+    "finalSale": false
+  },
+  {
+    "retailer": "mrporter",
+    "externalProductId": "46376663162981314",
+    "variantId": "taupe",
+    "name": "Soft Suede Penny Loafers",
+    "brand": "COMMON PROJECTS",
+    "category": "shoes",
+    "gender": "men",
+    "originalPrice": 760,
+    "salePrice": 456,
+    "currency": "USD",
+    "retailerUrl": "https://www.mrporter.com/en-us/mens/product/common-projects/shoes/loafers/soft-suede-penny-loafers/46376663162981314",
+    "images": [
+      "https://www.mrporter.com/variants/images/46376663162981314/in/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162981314/ou/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162981314/e1/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/46376663162981314/bk/w2000_q60.jpg"
+    ],
+    "inStock": true,
+    "sizes": [
+      {
+        "size": "EU 40",
+        "available": false
+      },
+      {
+        "size": "EU 41",
+        "available": false
+      },
+      {
+        "size": "EU 42",
+        "available": false
+      },
+      {
+        "size": "EU 43",
+        "available": false
+      },
+      {
+        "size": "EU 44",
+        "available": false
+      },
+      {
+        "size": "EU 45",
+        "available": false
+      },
+      {
+        "size": "EU 46",
+        "available": true
+      },
+      {
+        "size": "EU 47",
+        "available": false
+      }
+    ],
+    "colors": [
+      "Taupe"
+    ],
+    "observedAt": "2026-10-30T05:25:34.392Z",
+    "finalSale": false
+  },
+  {
+    "retailer": "mrporter",
+    "externalProductId": "1647597349098195",
+    "variantId": "brown",
+    "name": "2.5cm Leather Belt",
+    "brand": "MR P.",
+    "category": "accessories",
+    "gender": "men",
+    "originalPrice": 140,
+    "salePrice": 84,
+    "currency": "USD",
+    "retailerUrl": "https://www.mrporter.com/en-us/mens/product/mr-p/accessories/leather-belts/25cm-leather-belt/1647597349098195",
+    "images": [
+      "https://www.mrporter.com/variants/images/1647597349098195/in/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/1647597349098195/ou/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/1647597349098195/e1/w2000_q60.jpg",
+      "https://www.mrporter.com/variants/images/1647597349098195/in/w960_q60.jpg"
+    ],
+    "inStock": true,
+    "sizes": [
+      {
+        "size": "EU 85",
+        "available": false
+      },
+      {
+        "size": "EU 90",
+        "available": false
+      },
+      {
+        "size": "EU 95",
+        "available": false
+      },
+      {
+        "size": "EU 100",
+        "available": true
+      },
+      {
+        "size": "EU 105",
+        "available": true
+      },
+      {
+        "size": "EU 110",
+        "available": true
+      }
+    ],
+    "colors": [
+      "Brown"
+    ],
+    "observedAt": "2026-10-30T05:25:43.616Z",
+    "finalSale": false
+  },
+  {
+    "retailer": "saks",
+    "externalProductId": "0400022336349",
+    "variantId": "celadon-heather-nevis",
+    "name": "Double-Knit Jacquard Quarter-Zip Sweater",
+    "brand": "Polo Ralph Lauren",
+    "category": "clothing",
+    "gender": "men",
+    "originalPrice": 175,
+    "salePrice": 87.5,
+    "currency": "USD",
+    "retailerUrl": "https://www.saksfifthavenue.com/product/polo-ralph-lauren-double-knit-jacquard-quarter-zip-sweater-0400022336349.html?dwvar_0400022336349_size=Medium",
+    "images": [
+      "https://cdn.saksfifthavenue.com/is/image/saks/0400022336349_CELADONHEATHERNEVIS?wid=984&hei=1312&resMode=sharp2&op_usm=0.9,1.0,8,0&fmt=webp",
+      "https://cdn.saksfifthavenue.com/is/image/saks/0400022336349_CELADONHEATHERNEVIS_ASTL?wid=534&hei=712&resMode=sharp2&op_usm=0.9,1.0,8,0&fmt=webp",
+      "https://cdn.saksfifthavenue.com/is/image/saks/0400022336349_CELADONHEATHERNEVIS_A1?wid=534&hei=712&resMode=sharp2&op_usm=0.9,1.0,8,0&fmt=webp",
+      "https://cdn.saksfifthavenue.com/is/image/saks/0400022336349_CELADONHEATHERNEVIS_A2?wid=534&hei=712&resMode=sharp2&op_usm=0.9,1.0,8,0&fmt=webp",
+      "https://cdn.saksfifthavenue.com/is/image/saks/0400022336349_CELADONHEATHERNEVIS_A3?wid=534&hei=712&resMode=sharp2&op_usm=0.9,1.0,8,0&fmt=webp"
+    ],
+    "inStock": true,
+    "sizes": [
+      {
+        "size": "Small",
+        "available": true
+      },
+      {
+        "size": "Medium",
+        "available": true
+      },
+      {
+        "size": "Large",
+        "available": true
+      },
+      {
+        "size": "X-Large",
+        "available": true
+      },
+      {
+        "size": "XX-Large",
+        "available": true
+      }
+    ],
+    "colors": [
+      "Celadon Heather Nevis"
+    ],
+    "observedAt": "2026-10-30T05:27:55.807Z"
+  }
+]
